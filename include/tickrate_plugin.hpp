@@ -158,36 +158,8 @@ public: // CBaseGameSystem
 	void PostInit() override;
 	void Shutdown() override;
 
-	GS_EVENT(GameInit);
-	GS_EVENT(GameShutdown);
-	GS_EVENT(GamePostInit);
-	GS_EVENT(GamePreShutdown);
-	GS_EVENT(BuildGameSessionManifest);
-	GS_EVENT(GameActivate);
-	GS_EVENT(ClientFullySignedOn);
-	GS_EVENT(Disconnect);
-	GS_EVENT(GameDeactivate);
-	GS_EVENT(SpawnGroupPrecache);
-	GS_EVENT(SpawnGroupUncache);
-	GS_EVENT(PreSpawnGroupLoad);
-	GS_EVENT(PostSpawnGroupLoad);
-	GS_EVENT(PreSpawnGroupUnload);
-	GS_EVENT(PostSpawnGroupUnload);
-	GS_EVENT(ActiveSpawnGroupChanged);
-	GS_EVENT(ClientPostDataUpdate);
-	GS_EVENT(ClientPreRender);
-	GS_EVENT(ClientPreEntityThink);
-	GS_EVENT(ClientUpdate);
-	GS_EVENT(ClientPostRender);
-	GS_EVENT(ServerPreEntityThink);
-	GS_EVENT(ServerPostEntityThink);
-	GS_EVENT(ServerPreClientUpdate);
-	GS_EVENT(ServerGamePostSimulate);
-	GS_EVENT(ClientGamePostSimulate);
 	GS_EVENT(GameFrameBoundary);
 	GS_EVENT(OutOfGameFrameBoundary);
-	GS_EVENT(SaveGame);
-	GS_EVENT(RestoreGame);
 
 public: // IGameEventListener2
 	void FireGameEvent(IGameEvent *event) override;

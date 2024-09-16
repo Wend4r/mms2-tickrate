@@ -48,7 +48,7 @@
 #	include <tier1/convar.h>
 #	include <tier1/utlvector.h>
 
-#	define TICKRATE_LOGGINING_COLOR {127, 255, 0, 191} // Green (Chartreuse)
+#	define TICKRATE_LOGGINING_COLOR {255, 222, 145, 255}
 
 #	define TICKRATE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
 #	define TICKRATE_GAME_EVENTS_FILES "resource" CORRECT_PATH_SEPARATOR_S "*.gameevents"

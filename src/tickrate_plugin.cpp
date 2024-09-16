@@ -78,6 +78,10 @@ TickratePlugin::TickratePlugin()
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aTickratePlugin.GetLogTag());
     }, 0, LV_DEFAULT, TICKRATE_LOGGINING_COLOR),
+    m_aSVTickrateConVar("sv_tickrate", FCVAR_RELEASE | FCVAR_GAMEDLL, "Server tickrate", 64, [](ConVar<int> *pConVar, const CSplitScreenSlot aSlot, const int *pNewValue, const int *pOldValue)
+    {
+    	s_aTickratePlugin.Change(*pNewValue);
+    }),
     m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
     m_mapConVarCookies(DefLessFunc(const CUtlSymbolLarge)),
     m_mapLanguages(DefLessFunc(const CUtlSymbolLarge))
@@ -491,14 +495,32 @@ ITickrate::IPlayerData *TickratePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 
 int TickratePlugin::Get()
 {
-	return (int)(1.0f / *GetTickIntervalPointer());
+	float *pTickInterval = GetTickIntervalPointer();
+
+	if(pTickInterval)
+	{
+		return (int)(1.0f / *pTickInterval);
+	}
+
+	WarningFormat("%s: %s\n", __FUNCTION__, "Tick interval is not ready");
+
+	return TICKRATE_DEFAULT;
 }
 
 int TickratePlugin::Set(int nNew)
 {
 	int nOld = Get();
 
-	*GetTickIntervalPointer() = 1.0f / nNew;
+	float *pTickInterval = GetTickIntervalPointer();
+
+	if(pTickInterval)
+	{
+		*pTickInterval = 1.0f / nNew;
+	}
+	else
+	{
+		WarningFormat("%s: %s\n", __FUNCTION__, "Tick interval is not ready");
+	}
 
 	return nOld;
 }

@@ -48,6 +48,8 @@
 #	include <tier1/convar.h>
 #	include <tier1/utlvector.h>
 
+#	define TICKRATE_DEFAULT 64
+
 #	define TICKRATE_LOGGINING_COLOR {255, 222, 145, 255}
 
 #	define TICKRATE_BASE_DIR "addons" CORRECT_PATH_SEPARATOR_S META_PLUGIN_PREFIX
@@ -207,6 +209,7 @@ private: // Commands.
 	CON_COMMAND_MEMBER_F(TickratePlugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
 
 private: // ConVars. See the constructor
+	ConVar<int> m_aSVTickrateConVar;
 	ConVar<bool> m_aEnableFrameDetailsConVar;
 
 public: // SourceHooks.

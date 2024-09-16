@@ -1,0 +1,35 @@
+{
+	"$schema": "https://raw.githubusercontent.com/Wend4r/s2u-gamedata/e7e9027389840b27054192e4a204a59e5b9f0016/gamedata/schema.json",
+
+	"csgo":
+	{
+		"Addresses":
+		{
+			"&tick_interval":
+			{
+				"signature": "CNetworkGameClient::ComputeNextRenderTime",
+
+				"win64":
+				{
+					"read_offs32": 35
+				},
+
+				"linuxsteamrt64":
+				{
+					"read_offs32": 36
+				}
+			}
+		},
+
+		"Signatures":
+		{
+			"CNetworkGameClient::ComputeNextRenderTime":
+			{
+				"library": "engine2",
+
+				"win64": "40 53 48 83 EC 30 80 B9 ? ? ? ? ? 48 8B D9 0F 29 74 24 ? 66 0F 6E B1",
+				"linuxsteamrt64": "80 BF ? ? ? ? ? 66 0F EF C0 F3 0F 2A 87"
+			}
+		}
+	}
+}

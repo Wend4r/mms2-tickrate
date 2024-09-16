@@ -40,6 +40,7 @@
 #	define TICKRATE_GAMECONFIG_GAMERESOURCE_FILENAME "gameresource.games.*"
 #	define TICKRATE_GAMECONFIG_GAMESYSTEM_FILENAME "gamesystem.games.*"
 #	define TICKRATE_GAMECONFIG_SOURCE2SERVER_FILENAME "source2server.games.*"
+#	define TICKRATE_GAMECONFIG_TICK_FILENAME "tick.games.*"
 
 class CBaseGameSystemFactory;
 class CGameEventManager;
@@ -75,6 +76,7 @@ namespace Tickrate
 			bool LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 			bool LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 			bool LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+			bool LoadTick(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 
 		public:
 			class CGameResource
@@ -137,14 +139,36 @@ namespace Tickrate
 				CGameEventManager **m_ppGameEventManager = nullptr;
 			}; // CSource2Server
 
+			class CTick
+			{
+			public:
+				CTick();
+
+			public:
+				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+				void Reset();
+
+			public:
+				float *GetIntervalPointer() const;
+
+			private:
+				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
+				GameData::Config m_aGameConfig;
+
+			private: // Addresses.
+				float *m_pInterval = nullptr;
+			}; // CTick
+
 			const CGameResource &GetGameResource() const;
 			const CGameSystem &GetGameSystem() const;
 			const CSource2Server &GetSource2Server() const;
+			const CTick &GetTick() const;
 
 		private:
 			CGameResource m_aGameResource;
 			CGameSystem m_aGameSystem;
 			CSource2Server m_aSource2Server;
+			CTick m_aTick;
 		}; // GameDataStorage
 
 		const GameDataStorage &GetGameDataStorage() const;

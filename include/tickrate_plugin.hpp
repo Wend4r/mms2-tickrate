@@ -94,6 +94,7 @@ public: // ITickrate
 	CGameEntitySystem **GetGameEntitySystemPointer() const override;
 	CBaseGameSystemFactory **GetFirstGameSystemPointer() const override;
 	IGameEventManager2 **GetGameEventManagerPointer() const override;
+	float *GetTickIntervalPointer() const override;
 
 	class CLanguage : public ITickrate::ILanguage
 	{
@@ -139,19 +140,26 @@ public: // ITickrate
 		};
 
 		void TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages);
-		const TranslatedPhrase &GetYourArgumentPhrase() const;
+		const TranslatedPhrase &GetChangeTickratePhrase() const;
+		const TranslatedPhrase &GetCurrentTickratePhrase() const;
 
 	private:
 		const ILanguage *m_pLanguage;
 		CUtlVector<const LanguageHandleCallback_t *> m_vecLanguageCallbacks;
 
 	private:
-		TranslatedPhrase m_aYourArgumentPhrase;
+		TranslatedPhrase m_aChangeTickratePhrase;
+		TranslatedPhrase m_aCurrentTickratePhrase;
 	}; // CPlayerData
 
 	const ITickrate::ILanguage *GetServerLanguage() const override;
 	const ITickrate::ILanguage *GetLanguageByName(const char *psz) const override;
 	IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) override;
+
+public: // Tickrate.
+	int Get() override;
+	int Set(int nNew) override;
+	int Change(int nNew) override;
 
 public: // CBaseGameSystem
 	bool Init() override;
@@ -177,6 +185,10 @@ public: // Game Factory.
 public: // Source 2 Server.
 	bool RegisterSource2Server(char *error = nullptr, size_t maxlen = 0);
 	bool UnregisterSource2Server(char *error = nullptr, size_t maxlen = 0);
+
+public: // Tick.
+	bool RegisterTick(char *error = nullptr, size_t maxlen = 0);
+	bool UnregisterTick(char *error = nullptr, size_t maxlen = 0);
 
 public: // Network Messages.
 	bool RegisterNetMessages(char *error = nullptr, size_t maxlen = 0);

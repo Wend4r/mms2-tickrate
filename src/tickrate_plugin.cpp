@@ -130,6 +130,11 @@ bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen
 		return false;
 	}
 
+	if(!RegisterTick(error, maxlen))
+	{
+		return false;
+	}
+
 	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &TickratePlugin::OnDispatchConCommandHook), false);
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &TickratePlugin::OnStartupServerHook, true);
 
@@ -144,18 +149,15 @@ bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen
 
 		const auto &aPlayer = m_aPlayers[iClient];
 
-		const auto &aPhrase = aPlayer.GetYourArgumentPhrase();
+		const auto &aPhrase = aPlayer.GetCurrentTickratePhrase();
 
 		if(aPhrase.m_pFormat && aPhrase.m_pContent)
 		{
-			for(const auto &sArgument : vecArguments)
-			{
-				SendTextMessage(&aFilter, HUD_PRINTTALK, 1, aPhrase.m_pContent->Format(*aPhrase.m_pFormat, 1, sArgument.Get()).Get());
-			}
+			SendTextMessage(&aFilter, HUD_PRINTTALK, 1, aPhrase.m_pContent->Format(*aPhrase.m_pFormat, 1, Get()).Get());
 		}
 		else
 		{
-			Logger::Warning("Not found a your argument phrase\n");
+			Logger::Warning("Not found a current tickrate phrase\n");
 		}
 	});
 
@@ -173,6 +175,21 @@ bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen
 				{
 					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
 				}
+			}
+		}
+	}
+
+	// Apply a tickrate.
+	{
+		auto *pCommandLine = CommandLine();
+
+		if(pCommandLine)
+		{
+			int iTickrate = pCommandLine->ParmValue("-tickrate", -1);
+
+			if(iTickrate != -1)
+			{
+				Change(iTickrate);
 			}
 		}
 	}
@@ -204,6 +221,11 @@ bool TickratePlugin::Unload(char *error, size_t maxlen)
 	}
 
 	if(!UnregisterNetMessages(error, maxlen))
+	{
+		return false;
+	}
+
+	if(!UnregisterTick(error, maxlen))
 	{
 		return false;
 	}
@@ -297,6 +319,11 @@ IGameEventManager2 **TickratePlugin::GetGameEventManagerPointer() const
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
 }
 
+float *TickratePlugin::GetTickIntervalPointer() const
+{
+	return GetGameDataStorage().GetTick().GetIntervalPointer();
+}
+
 TickratePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
  :  m_sName(sInitName), 
     m_sCountryCode(pszInitCountryCode)
@@ -325,7 +352,7 @@ void TickratePlugin::CLanguage::SetCountryCode(const char *psz)
 
 TickratePlugin::CPlayerData::CPlayerData()
  :  m_pLanguage(nullptr), 
-    m_aYourArgumentPhrase({nullptr, nullptr})
+    m_aChangeTickratePhrase({nullptr, nullptr})
 {
 }
 
@@ -378,8 +405,12 @@ void TickratePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslat
 	} aPhrases[] =
 	{
 		{
-			"Your argument",
-			&m_aYourArgumentPhrase,
+			"Change tickrate",
+			&m_aChangeTickratePhrase,
+		},
+		{
+			"Current tickrate",
+			&m_aCurrentTickratePhrase,
 		}
 	};
 
@@ -431,9 +462,14 @@ void TickratePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslat
 	}
 }
 
-const TickratePlugin::CPlayerData::TranslatedPhrase &TickratePlugin::CPlayerData::GetYourArgumentPhrase() const
+const TickratePlugin::CPlayerData::TranslatedPhrase &TickratePlugin::CPlayerData::GetChangeTickratePhrase() const
 {
-	return m_aYourArgumentPhrase;
+	return m_aChangeTickratePhrase;
+}
+
+const TickratePlugin::CPlayerData::TranslatedPhrase &TickratePlugin::CPlayerData::GetCurrentTickratePhrase() const
+{
+	return m_aCurrentTickratePhrase;
 }
 
 const ITickrate::ILanguage *TickratePlugin::GetServerLanguage() const
@@ -451,6 +487,57 @@ const ITickrate::ILanguage *TickratePlugin::GetLanguageByName(const char *psz) c
 ITickrate::IPlayerData *TickratePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
 	return &m_aPlayers[aSlot.Get()];
+}
+
+int TickratePlugin::Get()
+{
+	return (int)(1.0f / *GetTickIntervalPointer());
+}
+
+int TickratePlugin::Set(int nNew)
+{
+	int nOld = Get();
+
+	*GetTickIntervalPointer() = 1.0f / nNew;
+
+	return nOld;
+}
+
+int TickratePlugin::Change(int nNew)
+{
+	int nOld = Set(nNew);
+
+	MessageFormat("Changed tickrate form %d to %d\n", nOld, nNew);
+
+	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
+
+	if(pNetServer)
+	{
+		for(const auto &pClient : pNetServer->m_Clients)
+		{
+			if(pClient->IsConnected() && !pClient->IsFakeClient())
+			{
+				auto aPlayerSlot = pClient->GetPlayerSlot();
+
+				int iClient = aPlayerSlot.Get();
+
+				Assert(0 <= iClient && iClient < ABSOLUTE_PLAYER_LIMIT);
+
+				const auto &aPlayer = m_aPlayers[iClient];
+
+				const auto &aPhrase =aPlayer.GetChangeTickratePhrase();
+
+				if(aPhrase.m_pFormat && aPhrase.m_pContent)
+				{
+					CSingleRecipientFilter aFilter(aPlayerSlot);
+
+					SendTextMessage(&aFilter, HUD_PRINTTALK, 1, aPhrase.m_pContent->Format(*aPhrase.m_pFormat, 2, nOld, nNew).Get());
+				}
+			}
+		}
+	}
+
+	return nOld;
 }
 
 bool TickratePlugin::Init()
@@ -755,6 +842,38 @@ bool TickratePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 		return false;
 	}
 
+	return true;
+}
+
+bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
+{
+	float *pTickInterval = GetGameDataStorage().GetTick().GetIntervalPointer();
+
+	if(!pTickInterval)
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to get a tick interval", maxlen);
+		}
+
+		return false;
+	}
+
+	if(!RegisterTickInterval(pTickInterval))
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to register a game event manager", maxlen);
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+bool TickratePlugin::UnregisterTick(char *error, size_t maxlen)
+{
 	return true;
 }
 

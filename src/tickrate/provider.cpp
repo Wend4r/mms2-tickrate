@@ -147,6 +147,10 @@ bool Tickrate::Provider::GameDataStorage::Load(IGameData *pRoot, const char *psz
 		{
 			TICKRATE_GAMECONFIG_SOURCE2SERVER_FILENAME,
 			&GameDataStorage::LoadSource2Server
+		},
+		{
+			TICKRATE_GAMECONFIG_TICK_FILENAME,
+			&GameDataStorage::LoadTick
 		}
 	};
 
@@ -218,6 +222,11 @@ bool Tickrate::Provider::GameDataStorage::LoadSource2Server(IGameData *pRoot, Ke
 	return m_aSource2Server.Load(pRoot, pGameConfig, vecMessages);
 }
 
+bool Tickrate::Provider::GameDataStorage::LoadTick(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+{
+	return m_aTick.Load(pRoot, pGameConfig, vecMessages);
+}
+
 const Tickrate::Provider::GameDataStorage::CGameResource &Tickrate::Provider::GameDataStorage::GetGameResource() const
 {
 	return m_aGameResource;
@@ -231,6 +240,11 @@ const Tickrate::Provider::GameDataStorage::CGameSystem &Tickrate::Provider::Game
 const Tickrate::Provider::GameDataStorage::CSource2Server &Tickrate::Provider::GameDataStorage::GetSource2Server() const
 {
 	return m_aSource2Server;
+}
+
+const Tickrate::Provider::GameDataStorage::CTick &Tickrate::Provider::GameDataStorage::GetTick() const
+{
+	return m_aTick;
 }
 
 const Tickrate::Provider::GameDataStorage &Tickrate::Provider::GetGameDataStorage() const

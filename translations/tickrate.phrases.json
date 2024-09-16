@@ -1,10 +1,17 @@
 {
 	"$schema": "https://raw.githubusercontent.com/Wend4r/s2u-translations/cf2a6a1089436b59d5c891a60663e77863e8b360/translations/schema.json",
 
-	"Your argument":
+	"Change tickrate":
 	{
-		"#format": "{1:s}",
-		"en": "Your argument: {1}",
-		"ru": "Ваш аргумент: {1}"
+		"#format": "{1:d},{2:d}",
+		"en": "The server tickrate are changed from {1} to {2}",
+		"ru": "Тикрейт сервера изменён с {1} на {2}"
+	},
+
+	"Current tickrate":
+	{
+		"#format": "{1:d},{2:d}",
+		"en": "The server tickrate is {1}",
+		"ru": "Текущий тикрейт: {1}"
 	}
 }

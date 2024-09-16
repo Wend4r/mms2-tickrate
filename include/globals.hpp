@@ -58,6 +58,7 @@ extern IGameEventSystem *g_pGameEventSystem;
 extern CEntitySystem *g_pEntitySystem;
 extern CGameEntitySystem *g_pGameEntitySystem;
 extern IGameEventManager2 *g_pGameEventManager;
+extern float *g_pTickInterval;
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error = nullptr, size_t maxlen = 0);
 
@@ -69,6 +70,9 @@ extern bool UnregisterFirstGameSystem();
 
 extern bool RegisterGameEventManager(IGameEventManager2 *pGameEventManager);
 extern bool UnregisterGameEventManager();
+
+extern bool RegisterTickInterval(float *pTickInterval);
+extern bool UnregisterTickInterval();
 
 extern void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
 extern void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);

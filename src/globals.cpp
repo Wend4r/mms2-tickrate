@@ -38,6 +38,7 @@ CEntitySystem *g_pEntitySystem = NULL;
 CGameEntitySystem *g_pGameEntitySystem = NULL;
 CBaseGameSystemFactory **CBaseGameSystemFactory::sm_pFirst = NULL;
 IGameEventManager2 *g_pGameEventManager = NULL;
+float *g_pTickInterval = NULL;
 
 bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 {
@@ -97,6 +98,20 @@ bool UnregisterGameEventManager()
 	return true;
 }
 
+bool RegisterTickInterval(float *pTickInterval)
+{
+	g_pTickInterval = pTickInterval;
+
+	return true;
+}
+
+bool UnregisterTickInterval()
+{
+	g_pTickInterval = NULL;
+
+	return true;
+}
+
 void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput)
 {
 	GLOBALS_APPEND_VARIABLE(g_pEngineServer);
@@ -117,6 +132,7 @@ void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput
 	GLOBALS_APPEND_VARIABLE(g_pGameEntitySystem);
 	GLOBALS_APPEND_VARIABLE(CBaseGameSystemFactory::sm_pFirst);
 	GLOBALS_APPEND_VARIABLE(g_pGameEventManager);
+	GLOBALS_APPEND_VARIABLE(g_pTickInterval);
 }
 
 bool DestoryGlobals(char *error, size_t maxlen)

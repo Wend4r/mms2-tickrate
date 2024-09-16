@@ -65,6 +65,13 @@ public:
 	 */
 	virtual IGameEventManager2 **GetGameEventManagerPointer() const = 0;
 
+	/**
+	 * @brief Gets a tick interval.
+	 * 
+	 * @return              A pointer to a tick interval.
+	 */
+	virtual float *GetTickIntervalPointer() const = 0;
+
 public: // Language ones.
 	/**
 	 * @brief A player data language interface.
@@ -154,6 +161,29 @@ public: // Player ones.
 	 * @return              Returns a player data.
 	 */
 	virtual IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) = 0;
+
+	/**
+	 * @brief Changes a tickrate.
+	 */
+	virtual int Get() = 0;
+
+	/**
+	 * @brief Set a tickrate silently.
+	 * 
+	 * @param nNew          A new tickrate value.
+	 * 
+	 * @return              Returns a old tickrate.
+	 */
+	virtual int Set(int nNew) = 0;
+
+	/**
+	 * @brief Changes a tickrate with notify messages.
+	 * 
+	 * @param nNew          A new tickrate value.
+	 * 
+	 * @return              Returns a old tickrate.
+	 */
+	virtual int Change(int nNew) = 0;
 }; // ITickrate
 
 #endif // _INCLUDE_METAMOD_SOURCE_ITICKRATE_HPP_

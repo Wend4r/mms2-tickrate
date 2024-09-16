@@ -79,7 +79,6 @@ TickratePlugin::TickratePlugin()
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aTickratePlugin.GetLogTag());
     }, 0, LV_DEFAULT, TICKRATE_LOGGINING_COLOR),
     m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
-    m_aEnableGameEventsDetaillsConVar("mm_" META_PLUGIN_PREFIX "_enable_game_events_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of game events", false, true, false, true, true),
     m_mapConVarCookies(DefLessFunc(const CUtlSymbolLarge)),
     m_mapLanguages(DefLessFunc(const CUtlSymbolLarge))
 {

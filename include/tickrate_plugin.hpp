@@ -196,7 +196,6 @@ private: // Commands.
 
 private: // ConVars. See the constructor
 	ConVar<bool> m_aEnableFrameDetailsConVar;
-	ConVar<bool> m_aEnableGameEventsDetaillsConVar;
 
 public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);

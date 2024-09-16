@@ -78,7 +78,7 @@ TickratePlugin::TickratePlugin()
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aTickratePlugin.GetLogTag());
     }, 0, LV_DEFAULT, TICKRATE_LOGGINING_COLOR),
-    m_aSVTickrateConVar("sv_tickrate", FCVAR_RELEASE | FCVAR_GAMEDLL, "Server tickrate", 64, [](ConVar<int> *pConVar, const CSplitScreenSlot aSlot, const int *pNewValue, const int *pOldValue)
+    m_aSVTickrateConVar("sv_tickrate", FCVAR_RELEASE | FCVAR_GAMEDLL, "Server tickrate", TICKRATE_DEFAULT, [](ConVar<int> *pConVar, const CSplitScreenSlot aSlot, const int *pNewValue, const int *pOldValue)
     {
     	s_aTickratePlugin.Change(*pNewValue);
     }),

@@ -1,0 +1,121 @@
+name: Build on Linux
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '.github/workflows/build-linux.yml'
+      - 'cmake/**'
+      - 'external/**'
+      - 'include/**'
+      - 'public/**'
+      - 'src/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'trigger-build.txt'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '.github/workflows/build-linux.yml'
+      - 'cmake/**'
+      - 'external/**'
+      - 'include/**'
+      - 'public/**'
+      - 'src/**'
+      - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'trigger-build.txt'
+
+env:
+  CMAKE_DEBUG_PRESET_NAME: Debug
+  CMAKE_DEBUG_CONFIG_NAME: Debug
+  CMAKE_DEBUG_OUTPUT_PATTERN: build/Debug/*.so
+  CMAKE_RELEASE_PRESET_NAME: Release
+  CMAKE_RELEASE_CONFIG_NAME: Release
+  CMAKE_RELEASE_OUTPUT_PATTERN: build/Release/*.so
+
+jobs:
+  build:
+    name: ${{ matrix.compiler.name }}
+    runs-on: ubuntu-latest
+    container: registry.gitlab.steamos.cloud/steamrt/sniper/sdk
+
+    strategy:
+      matrix:
+        compiler:
+          [
+            {
+              name: Clang,
+              cc: clang,
+              cxx: clang++,
+            },
+            {
+              name: GCC,
+              cc: gcc-12,
+              cxx: g++-12,
+            }
+        ]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build ${{ matrix.compiler.cc }}
+
+    - name: Set up environment variables
+      run: |
+        echo "ABSOLUTE_PATH=$(pwd)" >> $GITHUB_ENV
+        echo "REPOSITORY_NAME=$(basename ${GITHUB_REPOSITORY})" >> $GITHUB_ENV
+
+    - name: Configure Git to treat current directory as safe
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+    - name: Get latest tag
+      id: get-latest-tag
+      run: |
+        if [ -z "$(git tag)" ]; then
+          echo "No tags found"
+          echo "LATEST_TAG=none" >> $GITHUB_ENV
+        else
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+        fi
+
+    - name: Debug - Configure CMake
+      run: >
+        cmake --preset ${{ env.CMAKE_DEBUG_PRESET_NAME }}
+        -DCMAKE_C_COMPILER=${{ matrix.compiler.cc }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }}
+
+    - name: Debug - Build
+      run: cmake --build --preset ${{ env.CMAKE_DEBUG_PRESET_NAME }} --parallel --config ${{ env.CMAKE_DEBUG_CONFIG_NAME }}
+
+    - name: Debug - Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.REPOSITORY_NAME }}-${{ env.LATEST_TAG }}-${{ runner.os }}-${{ matrix.compiler.name }}-${{ env.CMAKE_DEBUG_PRESET_NAME }}
+        path: |
+          ${{ env.CMAKE_DEBUG_OUTPUT_PATTERN }}
+
+    - name: Release - Configure CMake
+      run: >
+        cmake --preset ${{ env.CMAKE_RELEASE_PRESET_NAME }}
+        -DCMAKE_C_COMPILER=${{ matrix.compiler.cc }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }}
+
+    - name: Release - Build
+      run: cmake --build --preset ${{ env.CMAKE_RELEASE_PRESET_NAME }} --parallel --config ${{ env.CMAKE_RELEASE_CONFIG_NAME }}
+
+    - name: Release - Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.REPOSITORY_NAME }}-${{ env.LATEST_TAG }}-${{ runner.os }}-${{ matrix.compiler.name }}-${{ env.CMAKE_RELEASE_PRESET_NAME }}
+        path: |
+          ${{ env.CMAKE_RELEASE_OUTPUT_PATTERN }}

@@ -1,0 +1,25 @@
+
+[submodule "Any Config"]
+	path = external/any_config
+	url = https://github.com/Wend4r/s2u-any_config.git
+[submodule "DynLibUtils"]
+	path = external/memory_utils
+	url = https://github.com/Wend4r/cpp-memory_utils.git
+[submodule "GameData"]
+	path = external/gamedata
+	url = https://github.com/Wend4r/s2u-gamedata.git
+[submodule "Logger"]
+	path = external/logger
+	url = https://github.com/Wend4r/s2u-logger.git
+[submodule "Metamod-Source"]
+	path = external/metamod-source
+	url = https://github.com/alliedmodders/metamod-source.git
+[submodule "Source SDK"]
+	path = external/sourcesdk
+	url = https://github.com/Wend4r/sourcesdk.git
+[submodule "Translations"]
+	path = external/translations
+	url = https://github.com/Wend4r/s2u-translations.git
+[submodule "external/translations"]
+	path = external/translations
+	url = https://github.com/Wend4r/s2u-translations.git

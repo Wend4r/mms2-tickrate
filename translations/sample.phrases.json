@@ -1,0 +1,10 @@
+{
+	"$schema": "https://raw.githubusercontent.com/Wend4r/s2u-translations/cf2a6a1089436b59d5c891a60663e77863e8b360/translations/schema.json",
+
+	"Your argument":
+	{
+		"#format": "{1:s}",
+		"en": "Your argument: {1}",
+		"ru": "Ваш аргумент: {1}"
+	}
+}

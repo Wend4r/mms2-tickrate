@@ -1,0 +1,21 @@
+{
+	"$schema": "https://raw.githubusercontent.com/Wend4r/s2u-gamedata/e7e9027389840b27054192e4a204a59e5b9f0016/gamedata/schema.json",
+
+	"csgo":
+	{
+		"Offsets":
+		{
+			"CGameResourceService::m_pEntitySystem":
+			{
+				"near_strings":
+				[
+					"CGameResourceService::BuildResourceManifest(start)",
+					"CGameResourceService::BuildResourceManifest(finish)"
+				],
+
+				"win64": 88,
+				"linuxsteamrt64": 80
+			}
+		}
+	}
+}

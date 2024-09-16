@@ -1,0 +1,43 @@
+{
+	"$schema": "https://raw.githubusercontent.com/Wend4r/s2u-gamedata/e7e9027389840b27054192e4a204a59e5b9f0016/gamedata/schema.json",
+
+	"csgo":
+	{
+		"Addresses":
+		{
+			"CBaseGameSystemFactory::sm_pFirst":
+			{
+				"signature": "IGameSystem::InitAllSystems",
+
+				"win64":
+				{
+					"read_offs32": 11
+				},
+
+				"linuxsteamrt64":
+				{
+					"read_offs32": 30
+				}
+			}
+		},
+
+		"Signatures":
+		{
+			"IGameSystem::InitAllSystems":
+			{
+				"library": "server",
+
+				"used_strings":
+				[
+					"Game System %s is defined twice!\n",
+					"System %s failed to init\n",
+					"IGameSystem::Init( %-80s ) %8.3f msec",
+					"IGameSystem::PostInit( %-80s ) %8.3f msec"
+				],
+
+				"win64": "40 53 56 57 48 83 EC 50 48 8B 1D ? ? ? ? 48 85 DB 0F 84",
+				"linuxsteamrt64": "55 48 89 E5 41 57 41 56 41 55 41 BD ? ? ? ? 41 54 4C 8D 65 C0 53",
+			}
+		}
+	}
+}

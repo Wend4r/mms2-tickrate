@@ -131,8 +131,6 @@ bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen
 		return false;
 	}
 
-	Assert(ParseGameEvents());
-
 	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &TickratePlugin::OnDispatchConCommandHook), false);
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &TickratePlugin::OnStartupServerHook, true);
 
@@ -198,9 +196,6 @@ bool TickratePlugin::Unload(char *error, size_t maxlen)
 
 	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &TickratePlugin::OnStartupServerHook, true);
 
-	Assert(UnhookGameEvents());
-
-	Assert(ClearGameEvents());
 	Assert(ClearLanguages());
 	Assert(ClearTranslations());
 
@@ -515,60 +510,6 @@ GS_EVENT_MEMBER(TickratePlugin, OutOfGameFrameBoundary)
 
 			DumpEventFrameBoundary(aConcat, sBuffer, msg);
 			Logger::Detailed(sBuffer);
-		}
-	}
-}
-
-void TickratePlugin::FireGameEvent(IGameEvent *event)
-{
-	if(!m_aEnableGameEventsDetaillsConVar.GetValue())
-	{
-		return;
-	}
-
-	KeyValues3 *pEventDataKeys = event->GetDataKeys();
-
-	if(!pEventDataKeys)
-	{
-		Logger::WarningFormat("Data keys is empty at \"%s\" event\n", event->GetName());
-
-		return;
-	}
-
-	if(IsChannelEnabled(LS_DETAILED))
-	{
-		int iMemberCount = pEventDataKeys->GetMemberCount();
-
-		if(!iMemberCount)
-		{
-			Logger::WarningFormat("No members at \"%s\" event\n", event->GetName());
-
-			return;
-		}
-
-		{
-			auto aDetails = Logger::CreateDetailsScope();
-
-			aDetails.PushFormat("\"%s\":", event->GetName());
-			aDetails.Push("{");
-
-			for(KV3MemberId_t id = 0; id < iMemberCount; id++)
-			{
-				const char *pEventMemberName = pEventDataKeys->GetMemberName(id);
-
-				KeyValues3 *pEventMember = pEventDataKeys->GetMember(id);
-
-				CBufferStringGrowable<128> sEventMember;
-
-				pEventMember->ToString(sEventMember, KV3_TO_STRING_DONT_CLEAR_BUFF);
-				aDetails.PushFormat("\t\"%s\":\t%s", pEventMemberName, sEventMember.Get());
-			}
-
-			aDetails.Push("}");
-			aDetails.Send([&](const CUtlString &sMessage)
-			{
-				Logger::Detailed(sMessage);
-			});
 		}
 	}
 }
@@ -1041,141 +982,6 @@ bool TickratePlugin::ClearTranslations(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::ParseGameEvents()
-{
-	const char *pszPathID = TICKRATE_BASE_PATHID;
-
-	CUtlVector<CUtlString> vecGameEventFiles;
-
-	CUtlVector<CUtlString> vecSubmessages;
-
-	CUtlString sMessage;
-
-	auto aWarnings = Logger::CreateWarningsScope();
-
-	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
-
-	g_pFullFileSystem->FindFileAbsoluteList(vecGameEventFiles, TICKRATE_GAME_EVENTS_FILES, pszPathID);
-
-	for(const auto &sFile : vecGameEventFiles)
-	{
-		const char *pszFilename = sFile.Get();
-
-		AnyConfig::Anyone aGameEventConfig;
-
-		aLoadPresets.m_pszFilename = pszFilename;
-
-		if(!aGameEventConfig.Load(aLoadPresets))
-		{
-			aWarnings.PushFormat("\"%s\": %s", pszFilename, sMessage.Get());
-
-			continue;
-		}
-
-		if(!ParseGameEvents(aGameEventConfig.Get(), vecSubmessages))
-		{
-			aWarnings.PushFormat("\"%s\":", pszFilename);
-
-			for(const auto &sSubmessage : vecSubmessages)
-			{
-				aWarnings.PushFormat("\t%s", sSubmessage.Get());
-			}
-
-			continue;
-		}
-
-		// ...
-	}
-
-	if(aWarnings.Count())
-	{
-		aWarnings.Send([&](const CUtlString &sMessage)
-		{
-			Logger::Warning(sMessage);
-		});
-	}
-
-	return true;
-}
-
-bool TickratePlugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages)
-{
-	int iMemberCount = pData->GetMemberCount();
-
-	if(!iMemberCount)
-	{
-		vecMessages.AddToTail("No members");
-
-		return false;
-	}
-
-	CUtlString sMessage;
-
-	for(KV3MemberId_t n = 0; n < iMemberCount; n++)
-	{
-		const char *pszEvent = pData->GetMemberName(n);
-
-		if(!pszEvent)
-		{
-			sMessage.Format("No member name at #%d", n);
-			vecMessages.AddToTail(sMessage);
-
-			continue;
-		}
-
-		m_vecGameEvents.AddToTail(pszEvent);
-	}
-
-	return iMemberCount;
-}
-
-bool TickratePlugin::ClearGameEvents()
-{
-	m_vecGameEvents.Purge();
-
-	return true;
-}
-
-bool TickratePlugin::HookGameEvents()
-{
-	auto aWarnings = Logger::CreateWarningsScope();
-
-	static const char *pszWarningFormat = "Failed to hook \"%s\" event";
-
-	for(const auto &sEvent : m_vecGameEvents)
-	{
-		const char *pszEvent = sEvent.Get();
-
-		if(g_pGameEventManager->AddListener(this, pszEvent, true) == -1)
-		{
-			aWarnings.PushFormat(pszWarningFormat, pszEvent);
-
-			continue;
-		}
-
-#ifdef DEBUG
-		Logger::DetailedFormat("Hooked \"%s\" event\n", pszEvent);
-#endif
-	}
-
-	if(aWarnings.Count())
-	{
-		aWarnings.Send([&](const CUtlString &sMessage)
-		{
-			Logger::Warning(sMessage);
-		});
-	}
-
-	return true;
-}
-
-bool TickratePlugin::UnhookGameEvents()
-{
-	g_pGameEventManager->RemoveListener(this);
-
-	return true;
-}
-
 void TickratePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
 {
 	char error[256];
@@ -1510,11 +1316,7 @@ void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const G
 	{
 		char sMessage[256];
 
-		if(RegisterSource2Server(sMessage, sizeof(sMessage)))
-		{
-			Assert(HookGameEvents());
-		}
-		else
+		if(!RegisterSource2Server(sMessage, sizeof(sMessage)))
 		{
 			Logger::WarningFormat("%s\n", sMessage);
 		}

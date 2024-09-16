@@ -65,7 +65,7 @@
 class CBasePlayerController;
 class INetworkMessageInternal;
 
-class TickratePlugin final : public ISmmPlugin, public IMetamodListener, public ITickrate, public CBaseGameSystem, public IGameEventListener2, 
+class TickratePlugin final : public ISmmPlugin, public IMetamodListener, public ITickrate, public CBaseGameSystem, 
                              public Tickrate::ChatCommandSystem, public Tickrate::Provider, virtual public Logger, public Translations
 {
 public:
@@ -161,9 +161,6 @@ public: // CBaseGameSystem
 	GS_EVENT(GameFrameBoundary);
 	GS_EVENT(OutOfGameFrameBoundary);
 
-public: // IGameEventListener2
-	void FireGameEvent(IGameEvent *event) override;
-
 public: // Utils.
 	bool InitProvider(char *error = nullptr, size_t maxlen = 0);
 	bool LoadProvider(char *error = nullptr, size_t maxlen = 0);
@@ -193,14 +190,6 @@ public: // Languages.
 public: // Translations.
 	bool ParseTranslations(char *error = nullptr, size_t maxlen = 0);
 	bool ClearTranslations(char *error = nullptr, size_t maxlen = 0);
-
-public: // Event actions.
-	bool ParseGameEvents();
-	bool ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages); // Parse the structure of events.
-	bool ClearGameEvents();
-
-	bool HookGameEvents();
-	bool UnhookGameEvents();
 
 private: // Commands.
 	CON_COMMAND_MEMBER_F(TickratePlugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);

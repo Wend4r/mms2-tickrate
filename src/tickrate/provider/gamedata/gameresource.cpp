@@ -1,8 +1,9 @@
+
 /**
  * vim: set ts=4 sw=4 tw=99 noet :
  * ======================================================
- * Metamod:Source {project}
- * Written by {name of author} ({fullname}).
+ * Metamod:Source Tickrate
+ * Written by Wend4r (Vladimir Ezhikov).
  * ======================================================
 
  * This program is free software: you can redistribute it and/or modify
@@ -19,33 +20,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <sample/provider.hpp>
+#include <tickrate/provider.hpp>
 
-Sample::Provider::GameDataStorage::CGameSystem::CGameSystem()
+Tickrate::Provider::GameDataStorage::CGameResource::CGameResource()
 {
 	{
-		auto &aCallbacks = m_aAddressCallbacks;
+		auto &aCallbacks = m_aOffsetCallbacks;
 
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("CBaseGameSystemFactory::sm_pFirst"), [&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("CGameResourceService::m_pEntitySystem"), [&](const CUtlSymbolLarge &aKey, const ptrdiff_t &nOffset)
 		{
-			m_ppFirstGameSystem = aAddress.RCast<decltype(m_ppFirstGameSystem)>();
+			m_nEntitySystemOffset = nOffset;
 		});
 
-		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
+
+		m_aGameConfig.GetOffsets().AddListener(&aCallbacks);
 	}
 }
 
-bool Sample::Provider::GameDataStorage::CGameSystem::Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::GameDataStorage::CGameResource::Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
 	return m_aGameConfig.Load(pRoot, pGameConfig, vecMessages);
 }
 
-void Sample::Provider::GameDataStorage::CGameSystem::Reset()
+void Tickrate::Provider::GameDataStorage::CGameResource::Reset()
 {
-	m_ppFirstGameSystem = nullptr;
+	m_nEntitySystemOffset = -1;
 }
 
-CBaseGameSystemFactory **Sample::Provider::GameDataStorage::CGameSystem::GetFirstGameSystemPointer() const
+ptrdiff_t Tickrate::Provider::GameDataStorage::CGameResource::GetEntitySystemOffset() const
 {
-	return m_ppFirstGameSystem;
+	return m_nEntitySystemOffset;
 }
+

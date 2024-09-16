@@ -1,8 +1,8 @@
 /**
  * vim: set ts=4 sw=4 tw=99 noet :
  * ======================================================
- * Metamod:Source {project}
- * Written by {name of author} ({fullname}).
+ * Metamod:Source Tickrate
+ * Written by Wend4r (Vladimir Ezhikov).
  * ======================================================
 
  * This program is free software: you can redistribute it and/or modify
@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_PROVIDER_HPP_
-#	define _INCLUDE_METAMOD_SOURCE_SAMPLE_PROVIDER_HPP_
+#ifndef _INCLUDE_METAMOD_SOURCE_TICKRATE_PROVIDER_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_TICKRATE_PROVIDER_HPP_
 
 #	pragma once
 
@@ -36,14 +36,14 @@
 
 #	include <gamedata.hpp> // GameData
 
-#	define SAMPLE_GAMECONFIG_FOLDER_DIR "gamedata"
-#	define SAMPLE_GAMECONFIG_GAMERESOURCE_FILENAME "gameresource.games.*"
-#	define SAMPLE_GAMECONFIG_GAMESYSTEM_FILENAME "gamesystem.games.*"
-#	define SAMPLE_GAMECONFIG_SOURCE2SERVER_FILENAME "source2server.games.*"
+#	define TICKRATE_GAMECONFIG_FOLDER_DIR "gamedata"
+#	define TICKRATE_GAMECONFIG_GAMERESOURCE_FILENAME "gameresource.games.*"
+#	define TICKRATE_GAMECONFIG_GAMESYSTEM_FILENAME "gamesystem.games.*"
+#	define TICKRATE_GAMECONFIG_SOURCE2SERVER_FILENAME "source2server.games.*"
 
 class CBaseGameSystemFactory;
 class CGameEventManager;
-namespace Sample
+namespace Tickrate
 {
 	class Provider : public IGameData
 	{
@@ -161,6 +161,6 @@ namespace Sample
 		                     m_aFileSystemSTDIOLibrary, 
 		                     m_aServerLibrary;
 	}; // Provider
-}; // Sample
+}; // Tickrate
 
-#endif // _INCLUDE_METAMOD_SOURCE_SAMPLE_PROVIDER_HPP_
+#endif // _INCLUDE_METAMOD_SOURCE_TICKRATE_PROVIDER_HPP_

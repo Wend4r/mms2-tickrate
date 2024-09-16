@@ -1,5 +1,5 @@
-# {project}
-# Copyright (C) {year} {name of author}
+# Tickrate
+# Copyright (C) 2024 Wend4r
 # Licensed under the GPLv3 license. See LICENSE file in the project root for details.
 
 if(UNIX)

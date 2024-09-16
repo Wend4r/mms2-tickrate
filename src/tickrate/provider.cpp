@@ -1,8 +1,8 @@
 /**
  * vim: set ts=4 sw=4 tw=99 noet :
  * ======================================================
- * Metamod:Source {project}
- * Written by {name of author} ({fullname}).
+ * Metamod:Source Tickrate
+ * Written by Wend4r (Vladimir Ezhikov).
  * ======================================================
 
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <sample/provider.hpp>
+#include <tickrate/provider.hpp>
 #include <globals.hpp>
 
 #include <filesystem.h>
@@ -29,12 +29,12 @@
 
 #include <any_config.hpp>
 
-Sample::Provider::Provider()
+Tickrate::Provider::Provider()
  :  m_mapLibraries(DefLessFunc(const CUtlSymbolLarge))
 {
 }
 
-bool Sample::Provider::Init(GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::Init(GameData::CBufferStringVector &vecMessages)
 {
 	// Enigne 2.
 	{
@@ -81,7 +81,7 @@ bool Sample::Provider::Init(GameData::CBufferStringVector &vecMessages)
 	return true;
 }
 
-bool Sample::Provider::Load(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::Load(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
 	if(!LoadGameData(pszBaseDir, pszPathID, vecMessages))
 	{
@@ -93,14 +93,14 @@ bool Sample::Provider::Load(const char *pszBaseDir, const char *pszPathID, GameD
 	return true;
 }
 
-bool Sample::Provider::Destroy(GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::Destroy(GameData::CBufferStringVector &vecMessages)
 {
 	m_mapLibraries.PurgeAndDeleteElements();
 
 	return true;
 }
 
-const DynLibUtils::CModule *Sample::Provider::FindLibrary(const char *pszName) const
+const DynLibUtils::CModule *Tickrate::Provider::FindLibrary(const char *pszName) const
 {
 	auto iFoundIndex = m_mapLibraries.Find(FindSymbol(pszName));
 
@@ -109,43 +109,43 @@ const DynLibUtils::CModule *Sample::Provider::FindLibrary(const char *pszName) c
 	return m_mapLibraries.Element(iFoundIndex);
 }
 
-CUtlSymbolLarge Sample::Provider::GetSymbol(const char *pszText)
+CUtlSymbolLarge Tickrate::Provider::GetSymbol(const char *pszText)
 {
 	return m_aSymbolTable.AddString(pszText);
 }
 
-CUtlSymbolLarge Sample::Provider::FindSymbol(const char *pszText) const
+CUtlSymbolLarge Tickrate::Provider::FindSymbol(const char *pszText) const
 {
 	return m_aSymbolTable.Find(pszText);
 }
 
-bool Sample::Provider::LoadGameData(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::LoadGameData(const char *pszBaseDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
 	char sBaseConfigDir[MAX_PATH];
 
-	snprintf((char *)sBaseConfigDir, sizeof(sBaseConfigDir), "%s" CORRECT_PATH_SEPARATOR_S "%s", pszBaseDir, SAMPLE_GAMECONFIG_FOLDER_DIR);
+	snprintf((char *)sBaseConfigDir, sizeof(sBaseConfigDir), "%s" CORRECT_PATH_SEPARATOR_S "%s", pszBaseDir, TICKRATE_GAMECONFIG_FOLDER_DIR);
 
 	return m_aStorage.Load(this, sBaseConfigDir, pszPathID, vecMessages);
 }
 
-bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseConfigDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseConfigDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
 	struct
 	{
 		const char *pszFilename;
-		bool (Sample::Provider::GameDataStorage::*pfnLoad)(IGameData *, KeyValues3 *, GameData::CBufferStringVector &);
+		bool (Tickrate::Provider::GameDataStorage::*pfnLoad)(IGameData *, KeyValues3 *, GameData::CBufferStringVector &);
 	} aConfigs[] =
 	{
 		{
-			SAMPLE_GAMECONFIG_GAMERESOURCE_FILENAME,
+			TICKRATE_GAMECONFIG_GAMERESOURCE_FILENAME,
 			&GameDataStorage::LoadGameResource
 		},
 		{
-			SAMPLE_GAMECONFIG_GAMESYSTEM_FILENAME,
+			TICKRATE_GAMECONFIG_GAMESYSTEM_FILENAME,
 			&GameDataStorage::LoadGameSystem
 		},
 		{
-			SAMPLE_GAMECONFIG_SOURCE2SERVER_FILENAME,
+			TICKRATE_GAMECONFIG_SOURCE2SERVER_FILENAME,
 			&GameDataStorage::LoadSource2Server
 		}
 	};
@@ -203,37 +203,37 @@ bool Sample::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBa
 	return true;
 }
 
-bool Sample::Provider::GameDataStorage::LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::GameDataStorage::LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
 	return m_aGameResource.Load(pRoot, pGameConfig, vecMessages);
 }
 
-bool Sample::Provider::GameDataStorage::LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::GameDataStorage::LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
 	return m_aGameSystem.Load(pRoot, pGameConfig, vecMessages);
 }
 
-bool Sample::Provider::GameDataStorage::LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+bool Tickrate::Provider::GameDataStorage::LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
 	return m_aSource2Server.Load(pRoot, pGameConfig, vecMessages);
 }
 
-const Sample::Provider::GameDataStorage::CGameResource &Sample::Provider::GameDataStorage::GetGameResource() const
+const Tickrate::Provider::GameDataStorage::CGameResource &Tickrate::Provider::GameDataStorage::GetGameResource() const
 {
 	return m_aGameResource;
 }
 
-const Sample::Provider::GameDataStorage::CGameSystem &Sample::Provider::GameDataStorage::GetGameSystem() const
+const Tickrate::Provider::GameDataStorage::CGameSystem &Tickrate::Provider::GameDataStorage::GetGameSystem() const
 {
 	return m_aGameSystem;
 }
 
-const Sample::Provider::GameDataStorage::CSource2Server &Sample::Provider::GameDataStorage::GetSource2Server() const
+const Tickrate::Provider::GameDataStorage::CSource2Server &Tickrate::Provider::GameDataStorage::GetSource2Server() const
 {
 	return m_aSource2Server;
 }
 
-const Sample::Provider::GameDataStorage &Sample::Provider::GetGameDataStorage() const
+const Tickrate::Provider::GameDataStorage &Tickrate::Provider::GetGameDataStorage() const
 {
 	return m_aStorage;
 }

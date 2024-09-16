@@ -1,8 +1,8 @@
 /**
  * vim: set ts=4 sw=4 tw=99 noet :
  * ======================================================
- * Metamod:Source {project}
- * Written by {name of author} ({fullname}).
+ * Metamod:Source Tickrate
+ * Written by Wend4r (Vladimir Ezhikov).
  * ======================================================
 
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  */
 
 
-#ifndef _INCLUDE_METAMOD_SOURCE_ISAMPLE_HPP_
-#	define _INCLUDE_METAMOD_SOURCE_ISAMPLE_HPP_
+#ifndef _INCLUDE_METAMOD_SOURCE_ITICKRATE_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_ITICKRATE_HPP_
 
 #	pragma once
 
@@ -31,17 +31,17 @@
 
 #	include <playerslot.h>
 
-#	define SAMPLE_INTERFACE_NAME "Sample v1.0.0"
+#	define TICKRATE_INTERFACE_NAME "Tickrate v1.0.0"
 
 class CGameEntitySystem;
 class CBaseGameSystemFactory;
 class IGameEventManager2;
 
 /**
- * @brief A sample interface.
- * Note: gets with "ismm->MetaFactory(SAMPLE_INTERFACE_NAME, NULL, NULL);"
+ * @brief A tickrate interface.
+ * Note: gets with "ismm->MetaFactory(TICKRATE_INTERFACE_NAME, NULL, NULL);"
 **/
-class ISample
+class ITickrate
 {
 public:
 	/**
@@ -154,6 +154,6 @@ public: // Player ones.
 	 * @return              Returns a player data.
 	 */
 	virtual IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) = 0;
-}; // ISample
+}; // ITickrate
 
-#endif // _INCLUDE_METAMOD_SOURCE_ISAMPLE_HPP_
+#endif // _INCLUDE_METAMOD_SOURCE_ITICKRATE_HPP_

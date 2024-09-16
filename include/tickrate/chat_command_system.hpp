@@ -1,8 +1,8 @@
 /**
  * vim: set ts=4 sw=4 tw=99 noet :
  * ======================================================
- * Metamod:Source {project}
- * Written by {name of author} ({fullname}).
+ * Metamod:Source Tickrate
+ * Written by Wend4r (Vladimir Ezhikov).
  * ======================================================
 
  * This program is free software: you can redistribute it and/or modify
@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_HPP_
-#	define _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_HPP_
+#ifndef _INCLUDE_METAMOD_SOURCE_TICKRATE_CHAT_COMMAND_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_TICKRATE_CHAT_COMMAND_HPP_
 
 #	pragma once
 
@@ -34,9 +34,9 @@
 
 #	include <logger.hpp>
 
-#	define SAMPLE_CHAT_COMMAND_SYSTEM_LOGGINING_COLOR {0, 127, 255, 191}
+#	define TICKRATE_CHAT_COMMAND_SYSTEM_LOGGINING_COLOR {0, 127, 255, 191}
 
-namespace Sample
+namespace Tickrate
 {
 	class ChatCommandSystem : virtual public Logger
 	{
@@ -68,6 +68,6 @@ namespace Sample
 		CUtlSymbolTableLarge_CI m_aSymbolTable;
 		CUtlMap<CUtlSymbolLarge, Callback_t> m_mapCallbacks;
 	}; // ChatCommand
-}; // Sample
+}; // Tickrate
 
-#endif // _INCLUDE_METAMOD_SOURCE_SAMPLE_CHAT_COMMAND_HPP_
+#endif // _INCLUDE_METAMOD_SOURCE_TICKRATE_CHAT_COMMAND_HPP_

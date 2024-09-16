@@ -1,8 +1,8 @@
 /**
  * vim: set ts=4 sw=4 tw=99 noet :
  * ======================================================
- * Metamod:Source {project}
- * Written by {name of author} ({fullname}).
+ * Metamod:Source Tickrate
+ * Written by Wend4r (Vladimir Ezhikov).
  * ======================================================
 
  * This program is free software: you can redistribute it and/or modify
@@ -19,49 +19,49 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <sample/chat_command_system.hpp>
+#include <tickrate/chat_command_system.hpp>
 
 #include <tier1/utlrbtree.h>
 
-Sample::ChatCommandSystem::ChatCommandSystem()
- :  Logger(GetName(), NULL, 0, LV_DEFAULT, SAMPLE_CHAT_COMMAND_SYSTEM_LOGGINING_COLOR), 
+Tickrate::ChatCommandSystem::ChatCommandSystem()
+ :  Logger(GetName(), NULL, 0, LV_DEFAULT, TICKRATE_CHAT_COMMAND_SYSTEM_LOGGINING_COLOR), 
     m_mapCallbacks(DefLessFunc(const CUtlSymbolLarge))
 {
 }
 
-const char *Sample::ChatCommandSystem::GetName()
+const char *Tickrate::ChatCommandSystem::GetName()
 {
-	return "Sample - Chat Command System";
+	return "Tickrate - Chat Command System";
 }
 
-bool Sample::ChatCommandSystem::Register(const char *pszName, const Callback_t &fnCallback)
+bool Tickrate::ChatCommandSystem::Register(const char *pszName, const Callback_t &fnCallback)
 {
 	m_mapCallbacks.Insert(m_aSymbolTable.AddString(pszName), fnCallback);
 
 	return true;
 }
 
-bool Sample::ChatCommandSystem::Unregister(const char *pszName)
+bool Tickrate::ChatCommandSystem::Unregister(const char *pszName)
 {
 	return m_mapCallbacks.Remove(FindSymbol(pszName));
 }
 
-void Sample::ChatCommandSystem::UnregisterAll()
+void Tickrate::ChatCommandSystem::UnregisterAll()
 {
 	m_mapCallbacks.Purge();
 }
 
-char Sample::ChatCommandSystem::GetPublicTrigger()
+char Tickrate::ChatCommandSystem::GetPublicTrigger()
 {
 	return '!';
 }
 
-char Sample::ChatCommandSystem::GetSilentTrigger()
+char Tickrate::ChatCommandSystem::GetSilentTrigger()
 {
 	return '/';
 }
 
-bool Sample::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArgs)
+bool Tickrate::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArgs)
 {
 	if(aSlot == -1)
 	{
@@ -104,12 +104,12 @@ bool Sample::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const 
 	return true;
 }
 
-CUtlSymbolLarge Sample::ChatCommandSystem::GetSymbol(const char *pszText)
+CUtlSymbolLarge Tickrate::ChatCommandSystem::GetSymbol(const char *pszText)
 {
 	return m_aSymbolTable.AddString(pszText);
 }
 
-CUtlSymbolLarge Sample::ChatCommandSystem::FindSymbol(const char *pszText) const
+CUtlSymbolLarge Tickrate::ChatCommandSystem::FindSymbol(const char *pszText) const
 {
 	return m_aSymbolTable.Find(pszText);
 }

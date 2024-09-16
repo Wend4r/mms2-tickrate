@@ -1,4 +1,4 @@
-## Sample plugin
+## Tickrate
 
 ### Requirements (included)
 

@@ -1,8 +1,8 @@
 /**
  * vim: set ts=4 sw=4 tw=99 noet :
  * ======================================================
- * Metamod:Source {project}
- * Written by {name of author} ({fullname}).
+ * Metamod:Source Tickrate
+ * Written by Wend4r (Vladimir Ezhikov).
  * ======================================================
 
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <sample_plugin.hpp>
+#include <tickrate_plugin.hpp>
 #include <globals.hpp>
 
 #include <stdint.h>
@@ -48,8 +48,8 @@ SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSide
 SH_DECL_HOOK1(CServerSideClientBase, ProcessRespondCvarValue, SH_NOATTRIB, 0, bool, const CCLCMsg_RespondCvarValue_t &);
 SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
 
-static SamplePlugin s_aSamplePlugin;
-SamplePlugin *g_pSamplePlugin = &s_aSamplePlugin;
+static TickratePlugin s_aTickratePlugin;
+TickratePlugin *g_pTickratePlugin = &s_aTickratePlugin;
 
 const ConcatLineString s_aEmbedConcat =
 {
@@ -71,13 +71,13 @@ const ConcatLineString s_aEmbed2Concat =
 	}
 };
 
-PLUGIN_EXPOSE(SamplePlugin, s_aSamplePlugin);
+PLUGIN_EXPOSE(TickratePlugin, s_aTickratePlugin);
 
-SamplePlugin::SamplePlugin()
+TickratePlugin::TickratePlugin()
  :  Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
     {
-    	LoggingSystem_AddTagToChannel(nTagChannelID, s_aSamplePlugin.GetLogTag());
-    }, 0, LV_DETAILED, SAMPLE_LOGGINING_COLOR),
+    	LoggingSystem_AddTagToChannel(nTagChannelID, s_aTickratePlugin.GetLogTag());
+    }, 0, LV_DETAILED, TICKRATE_LOGGINING_COLOR),
     m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
     m_aEnableGameEventsDetaillsConVar("mm_" META_PLUGIN_PREFIX "_enable_game_events_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of game events", false, true, false, true, true),
     m_mapConVarCookies(DefLessFunc(const CUtlSymbolLarge)),
@@ -85,7 +85,7 @@ SamplePlugin::SamplePlugin()
 {
 }
 
-bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
+bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
 
@@ -133,11 +133,11 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 
 	Assert(ParseGameEvents());
 
-	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &SamplePlugin::OnDispatchConCommandHook), false);
-	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
+	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &TickratePlugin::OnDispatchConCommandHook), false);
+	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &TickratePlugin::OnStartupServerHook, true);
 
 	// Register chat commands.
-	Sample::ChatCommandSystem::Register("sample", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
+	Tickrate::ChatCommandSystem::Register("tickrate", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
 	{
 		CSingleRecipientFilter aFilter(aSlot);
 
@@ -185,18 +185,18 @@ bool SamplePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, 
 	return true;
 }
 
-bool SamplePlugin::Unload(char *error, size_t maxlen)
+bool TickratePlugin::Unload(char *error, size_t maxlen)
 {
 	{
 		auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
 		if(pNetServer)
 		{
-			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
+			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &TickratePlugin::OnConnectClientHook, true);
 		}
 	}
 
-	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &SamplePlugin::OnStartupServerHook, true);
+	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &TickratePlugin::OnStartupServerHook, true);
 
 	Assert(UnhookGameEvents());
 
@@ -241,17 +241,17 @@ bool SamplePlugin::Unload(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::Pause(char *error, size_t maxlen)
+bool TickratePlugin::Pause(char *error, size_t maxlen)
 {
 	return true;
 }
 
-bool SamplePlugin::Unpause(char *error, size_t maxlen)
+bool TickratePlugin::Unpause(char *error, size_t maxlen)
 {
 	return true;
 }
 
-void SamplePlugin::AllPluginsLoaded()
+void TickratePlugin::AllPluginsLoaded()
 {
 	/**
 	 * AMNOTE: This is where we'd do stuff that relies on the mod or other plugins 
@@ -259,18 +259,18 @@ void SamplePlugin::AllPluginsLoaded()
 	 */
 }
 
-const char *SamplePlugin::GetAuthor()        { return META_PLUGIN_AUTHOR; }
-const char *SamplePlugin::GetName()          { return META_PLUGIN_NAME; }
-const char *SamplePlugin::GetDescription()   { return META_PLUGIN_DESCRIPTION; }
-const char *SamplePlugin::GetURL()           { return META_PLUGIN_URL; }
-const char *SamplePlugin::GetLicense()       { return META_PLUGIN_LICENSE; }
-const char *SamplePlugin::GetVersion()       { return META_PLUGIN_VERSION; }
-const char *SamplePlugin::GetDate()          { return META_PLUGIN_DATE; }
-const char *SamplePlugin::GetLogTag()        { return META_PLUGIN_LOG_TAG; }
+const char *TickratePlugin::GetAuthor()        { return META_PLUGIN_AUTHOR; }
+const char *TickratePlugin::GetName()          { return META_PLUGIN_NAME; }
+const char *TickratePlugin::GetDescription()   { return META_PLUGIN_DESCRIPTION; }
+const char *TickratePlugin::GetURL()           { return META_PLUGIN_URL; }
+const char *TickratePlugin::GetLicense()       { return META_PLUGIN_LICENSE; }
+const char *TickratePlugin::GetVersion()       { return META_PLUGIN_VERSION; }
+const char *TickratePlugin::GetDate()          { return META_PLUGIN_DATE; }
+const char *TickratePlugin::GetLogTag()        { return META_PLUGIN_LOG_TAG; }
 
-void *SamplePlugin::OnMetamodQuery(const char *iface, int *ret)
+void *TickratePlugin::OnMetamodQuery(const char *iface, int *ret)
 {
-	if(!strcmp(iface, SAMPLE_INTERFACE_NAME))
+	if(!strcmp(iface, TICKRATE_INTERFACE_NAME))
 	{
 		if(ret)
 		{
@@ -288,64 +288,64 @@ void *SamplePlugin::OnMetamodQuery(const char *iface, int *ret)
 	return nullptr;
 }
 
-CGameEntitySystem **SamplePlugin::GetGameEntitySystemPointer() const
+CGameEntitySystem **TickratePlugin::GetGameEntitySystemPointer() const
 {
 	return reinterpret_cast<CGameEntitySystem **>((uintptr_t)g_pGameResourceServiceServer + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
 }
 
-CBaseGameSystemFactory **SamplePlugin::GetFirstGameSystemPointer() const
+CBaseGameSystemFactory **TickratePlugin::GetFirstGameSystemPointer() const
 {
 	return GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer();
 }
 
-IGameEventManager2 **SamplePlugin::GetGameEventManagerPointer() const
+IGameEventManager2 **TickratePlugin::GetGameEventManagerPointer() const
 {
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
 }
 
-SamplePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
+TickratePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
  :  m_sName(sInitName), 
     m_sCountryCode(pszInitCountryCode)
 {
 }
 
-const char *SamplePlugin::CLanguage::GetName() const
+const char *TickratePlugin::CLanguage::GetName() const
 {
 	return m_sName.String();
 }
 
-void SamplePlugin::CLanguage::SetName(const CUtlSymbolLarge &s)
+void TickratePlugin::CLanguage::SetName(const CUtlSymbolLarge &s)
 {
 	m_sName = s;
 }
 
-const char *SamplePlugin::CLanguage::GetCountryCode() const
+const char *TickratePlugin::CLanguage::GetCountryCode() const
 {
 	return m_sCountryCode;
 }
 
-void SamplePlugin::CLanguage::SetCountryCode(const char *psz)
+void TickratePlugin::CLanguage::SetCountryCode(const char *psz)
 {
 	m_sCountryCode = psz;
 }
 
-SamplePlugin::CPlayerData::CPlayerData()
+TickratePlugin::CPlayerData::CPlayerData()
  :  m_pLanguage(nullptr), 
     m_aYourArgumentPhrase({nullptr, nullptr})
 {
 }
 
-const ISample::ILanguage *SamplePlugin::CPlayerData::GetLanguage() const
+const ITickrate::ILanguage *TickratePlugin::CPlayerData::GetLanguage() const
 {
 	return m_pLanguage;
 }
 
-void SamplePlugin::CPlayerData::SetLanguage(const ILanguage *pData)
+void TickratePlugin::CPlayerData::SetLanguage(const ILanguage *pData)
 {
 	m_pLanguage = pData;
 }
 
-bool SamplePlugin::CPlayerData::AddLanguageListener(const LanguageHandleCallback_t *pfnCallback)
+bool TickratePlugin::CPlayerData::AddLanguageListener(const LanguageHandleCallback_t *pfnCallback)
 {
 	// Check on exists.
 	{
@@ -359,12 +359,12 @@ bool SamplePlugin::CPlayerData::AddLanguageListener(const LanguageHandleCallback
 	return true;
 }
 
-bool SamplePlugin::CPlayerData::RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback)
+bool TickratePlugin::CPlayerData::RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback)
 {
 	return m_vecLanguageCallbacks.FindAndRemove(pfnCallback);
 }
 
-void SamplePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData)
+void TickratePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData)
 {
 	SetLanguage(pData);
 
@@ -375,7 +375,7 @@ void SamplePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage 
 }
 
 
-void SamplePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
+void TickratePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
 {
 	struct
 	{
@@ -437,29 +437,29 @@ void SamplePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslatio
 	}
 }
 
-const SamplePlugin::CPlayerData::TranslatedPhrase &SamplePlugin::CPlayerData::GetYourArgumentPhrase() const
+const TickratePlugin::CPlayerData::TranslatedPhrase &TickratePlugin::CPlayerData::GetYourArgumentPhrase() const
 {
 	return m_aYourArgumentPhrase;
 }
 
-const ISample::ILanguage *SamplePlugin::GetServerLanguage() const
+const ITickrate::ILanguage *TickratePlugin::GetServerLanguage() const
 {
 	return &m_aServerLanguage;
 }
 
-const ISample::ILanguage *SamplePlugin::GetLanguageByName(const char *psz) const
+const ITickrate::ILanguage *TickratePlugin::GetLanguageByName(const char *psz) const
 {
 	auto iFound = m_mapLanguages.Find(FindLanguageSymbol(psz));
 
 	return m_mapLanguages.IsValidIndex(iFound) ? &m_mapLanguages.Element(iFound) : nullptr;
 }
 
-ISample::IPlayerData *SamplePlugin::GetPlayerData(const CPlayerSlot &aSlot)
+ITickrate::IPlayerData *TickratePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
 	return &m_aPlayers[aSlot.Get()];
 }
 
-bool SamplePlugin::Init()
+bool TickratePlugin::Init()
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -469,7 +469,7 @@ bool SamplePlugin::Init()
 	return true;
 }
 
-void SamplePlugin::PostInit()
+void TickratePlugin::PostInit()
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -477,7 +477,7 @@ void SamplePlugin::PostInit()
 	}
 }
 
-void SamplePlugin::Shutdown()
+void TickratePlugin::Shutdown()
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -485,7 +485,7 @@ void SamplePlugin::Shutdown()
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameInit)
+GS_EVENT_MEMBER(TickratePlugin, GameInit)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -516,7 +516,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameInit)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
+GS_EVENT_MEMBER(TickratePlugin, GameShutdown)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -524,7 +524,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameShutdown)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
+GS_EVENT_MEMBER(TickratePlugin, GamePostInit)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -554,7 +554,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePostInit)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GamePreShutdown)
+GS_EVENT_MEMBER(TickratePlugin, GamePreShutdown)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -562,7 +562,7 @@ GS_EVENT_MEMBER(SamplePlugin, GamePreShutdown)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
+GS_EVENT_MEMBER(TickratePlugin, BuildGameSessionManifest)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -579,7 +579,7 @@ GS_EVENT_MEMBER(SamplePlugin, BuildGameSessionManifest)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameActivate)
+GS_EVENT_MEMBER(TickratePlugin, GameActivate)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -609,7 +609,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameActivate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientFullySignedOn)
+GS_EVENT_MEMBER(TickratePlugin, ClientFullySignedOn)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -617,7 +617,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientFullySignedOn)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, Disconnect)
+GS_EVENT_MEMBER(TickratePlugin, Disconnect)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -625,7 +625,7 @@ GS_EVENT_MEMBER(SamplePlugin, Disconnect)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
+GS_EVENT_MEMBER(TickratePlugin, GameDeactivate)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -645,7 +645,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameDeactivate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
+GS_EVENT_MEMBER(TickratePlugin, SpawnGroupPrecache)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -669,7 +669,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupPrecache)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
+GS_EVENT_MEMBER(TickratePlugin, SpawnGroupUncache)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -688,7 +688,7 @@ GS_EVENT_MEMBER(SamplePlugin, SpawnGroupUncache)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
+GS_EVENT_MEMBER(TickratePlugin, PreSpawnGroupLoad)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -707,7 +707,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupLoad)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
+GS_EVENT_MEMBER(TickratePlugin, PostSpawnGroupLoad)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -729,7 +729,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupLoad)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
+GS_EVENT_MEMBER(TickratePlugin, PreSpawnGroupUnload)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -751,7 +751,7 @@ GS_EVENT_MEMBER(SamplePlugin, PreSpawnGroupUnload)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
+GS_EVENT_MEMBER(TickratePlugin, PostSpawnGroupUnload)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -770,7 +770,7 @@ GS_EVENT_MEMBER(SamplePlugin, PostSpawnGroupUnload)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
+GS_EVENT_MEMBER(TickratePlugin, ActiveSpawnGroupChanged)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -789,7 +789,7 @@ GS_EVENT_MEMBER(SamplePlugin, ActiveSpawnGroupChanged)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
+GS_EVENT_MEMBER(TickratePlugin, ClientPostDataUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -797,7 +797,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostDataUpdate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
+GS_EVENT_MEMBER(TickratePlugin, ClientPreRender)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -814,7 +814,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreRender)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
+GS_EVENT_MEMBER(TickratePlugin, ClientPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -832,7 +832,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPreEntityThink)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
+GS_EVENT_MEMBER(TickratePlugin, ClientUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -851,7 +851,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientUpdate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
+GS_EVENT_MEMBER(TickratePlugin, ClientPostRender)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -859,7 +859,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientPostRender)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
+GS_EVENT_MEMBER(TickratePlugin, ServerPreEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -876,7 +876,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreEntityThink)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
+GS_EVENT_MEMBER(TickratePlugin, ServerPostEntityThink)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -894,7 +894,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPostEntityThink)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
+GS_EVENT_MEMBER(TickratePlugin, ServerPreClientUpdate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -902,7 +902,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerPreClientUpdate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
+GS_EVENT_MEMBER(TickratePlugin, ServerGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -920,7 +920,7 @@ GS_EVENT_MEMBER(SamplePlugin, ServerGamePostSimulate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
+GS_EVENT_MEMBER(TickratePlugin, ClientGamePostSimulate)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -938,7 +938,7 @@ GS_EVENT_MEMBER(SamplePlugin, ClientGamePostSimulate)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
+GS_EVENT_MEMBER(TickratePlugin, GameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -955,7 +955,7 @@ GS_EVENT_MEMBER(SamplePlugin, GameFrameBoundary)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
+GS_EVENT_MEMBER(TickratePlugin, OutOfGameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -972,7 +972,7 @@ GS_EVENT_MEMBER(SamplePlugin, OutOfGameFrameBoundary)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, SaveGame)
+GS_EVENT_MEMBER(TickratePlugin, SaveGame)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -990,7 +990,7 @@ GS_EVENT_MEMBER(SamplePlugin, SaveGame)
 	}
 }
 
-GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
+GS_EVENT_MEMBER(TickratePlugin, RestoreGame)
 {
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -1009,7 +1009,7 @@ GS_EVENT_MEMBER(SamplePlugin, RestoreGame)
 	}
 }
 
-void SamplePlugin::FireGameEvent(IGameEvent *event)
+void TickratePlugin::FireGameEvent(IGameEvent *event)
 {
 	if(!m_aEnableGameEventsDetaillsConVar.GetValue())
 	{
@@ -1063,7 +1063,7 @@ void SamplePlugin::FireGameEvent(IGameEvent *event)
 	}
 }
 
-bool SamplePlugin::InitProvider(char *error, size_t maxlen)
+bool TickratePlugin::InitProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -1100,11 +1100,11 @@ bool SamplePlugin::InitProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
+bool TickratePlugin::LoadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
-	bool bResult = Provider::Load(SAMPLE_BASE_DIR, SAMPLE_BASE_PATHID, vecMessages);
+	bool bResult = Provider::Load(TICKRATE_BASE_DIR, TICKRATE_BASE_PATHID, vecMessages);
 
 	if(vecMessages.Count())
 	{
@@ -1137,7 +1137,7 @@ bool SamplePlugin::LoadProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
+bool TickratePlugin::UnloadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -1174,7 +1174,7 @@ bool SamplePlugin::UnloadProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
+bool TickratePlugin::RegisterGameResource(char *error, size_t maxlen)
 {
 	CGameEntitySystem **pGameEntitySystem = GetGameEntitySystemPointer();
 
@@ -1201,7 +1201,7 @@ bool SamplePlugin::RegisterGameResource(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
+bool TickratePlugin::UnregisterGameResource(char *error, size_t maxlen)
 {
 	if(!UnregisterGameEntitySystem())
 	{
@@ -1216,7 +1216,7 @@ bool SamplePlugin::UnregisterGameResource(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
+bool TickratePlugin::RegisterGameFactory(char *error, size_t maxlen)
 {
 	CBaseGameSystemFactory **ppFactory = GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer();
 
@@ -1240,12 +1240,12 @@ bool SamplePlugin::RegisterGameFactory(char *error, size_t maxlen)
 		return false;
 	}
 
-	m_pFactory = new CGameSystemStaticFactory<SamplePlugin>(GetName(), this);
+	m_pFactory = new CGameSystemStaticFactory<TickratePlugin>(GetName(), this);
 
 	return true;
 }
 
-bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
+bool TickratePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 {
 	if(m_pFactory)
 	{
@@ -1266,7 +1266,7 @@ bool SamplePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::RegisterSource2Server(char *error, size_t maxlen)
+bool TickratePlugin::RegisterSource2Server(char *error, size_t maxlen)
 {
 	IGameEventManager2 **ppGameEventManager = GetGameEventManagerPointer();
 
@@ -1293,7 +1293,7 @@ bool SamplePlugin::RegisterSource2Server(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
+bool TickratePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 {
 	if(!UnregisterGameEventManager())
 	{
@@ -1308,7 +1308,7 @@ bool SamplePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
+bool TickratePlugin::RegisterNetMessages(char *error, size_t maxlen)
 {
 	struct
 	{
@@ -1352,17 +1352,17 @@ bool SamplePlugin::RegisterNetMessages(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::UnregisterNetMessages(char *error, size_t maxlen)
+bool TickratePlugin::UnregisterNetMessages(char *error, size_t maxlen)
 {
 	m_pSayText2Message = NULL;
 
 	return true;
 }
 
-bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
+bool TickratePlugin::ParseLanguages(char *error, size_t maxlen)
 {
-	const char *pszPathID = SAMPLE_BASE_PATHID, 
-	           *pszLanguagesFiles = SAMPLE_GAME_LANGUAGES_PATH_FILES;
+	const char *pszPathID = TICKRATE_BASE_PATHID, 
+	           *pszLanguagesFiles = TICKRATE_GAME_LANGUAGES_PATH_FILES;
 
 	CUtlVector<CUtlString> vecLangugesFiles;
 	CUtlVector<CUtlString> vecSubmessages;
@@ -1421,7 +1421,7 @@ bool SamplePlugin::ParseLanguages(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages)
+bool TickratePlugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages)
 {
 	int iMemberCount = pRoot->GetMemberCount();
 
@@ -1454,17 +1454,17 @@ bool SamplePlugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vec
 	return true;
 }
 
-bool SamplePlugin::ClearLanguages(char *error, size_t maxlen)
+bool TickratePlugin::ClearLanguages(char *error, size_t maxlen)
 {
 	m_vecLanguages.Purge();
 
 	return true;
 }
 
-bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
+bool TickratePlugin::ParseTranslations(char *error, size_t maxlen)
 {
-	const char *pszPathID = SAMPLE_BASE_PATHID, 
-	           *pszTranslationsFiles = SAMPLE_GAME_TRANSLATIONS_PATH_FILES;
+	const char *pszPathID = TICKRATE_BASE_PATHID, 
+	           *pszTranslationsFiles = TICKRATE_GAME_TRANSLATIONS_PATH_FILES;
 
 	CUtlVector<CUtlString> vecTranslationsFiles;
 
@@ -1524,16 +1524,16 @@ bool SamplePlugin::ParseTranslations(char *error, size_t maxlen)
 	return true;
 }
 
-bool SamplePlugin::ClearTranslations(char *error, size_t maxlen)
+bool TickratePlugin::ClearTranslations(char *error, size_t maxlen)
 {
 	Translations::Purge();
 
 	return true;
 }
 
-bool SamplePlugin::ParseGameEvents()
+bool TickratePlugin::ParseGameEvents()
 {
-	const char *pszPathID = SAMPLE_BASE_PATHID;
+	const char *pszPathID = TICKRATE_BASE_PATHID;
 
 	CUtlVector<CUtlString> vecGameEventFiles;
 
@@ -1545,7 +1545,7 @@ bool SamplePlugin::ParseGameEvents()
 
 	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sMessage, NULL, pszPathID}, g_KV3Format_Generic});
 
-	g_pFullFileSystem->FindFileAbsoluteList(vecGameEventFiles, SAMPLE_GAME_EVENTS_FILES, pszPathID);
+	g_pFullFileSystem->FindFileAbsoluteList(vecGameEventFiles, TICKRATE_GAME_EVENTS_FILES, pszPathID);
 
 	for(const auto &sFile : vecGameEventFiles)
 	{
@@ -1588,7 +1588,7 @@ bool SamplePlugin::ParseGameEvents()
 	return true;
 }
 
-bool SamplePlugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages)
+bool TickratePlugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &vecMessages)
 {
 	int iMemberCount = pData->GetMemberCount();
 
@@ -1619,14 +1619,14 @@ bool SamplePlugin::ParseGameEvents(KeyValues3 *pData, CUtlVector<CUtlString> &ve
 	return iMemberCount;
 }
 
-bool SamplePlugin::ClearGameEvents()
+bool TickratePlugin::ClearGameEvents()
 {
 	m_vecGameEvents.Purge();
 
 	return true;
 }
 
-bool SamplePlugin::HookGameEvents()
+bool TickratePlugin::HookGameEvents()
 {
 	auto aWarnings = Logger::CreateWarningsScope();
 
@@ -1659,14 +1659,14 @@ bool SamplePlugin::HookGameEvents()
 	return true;
 }
 
-bool SamplePlugin::UnhookGameEvents()
+bool TickratePlugin::UnhookGameEvents()
 {
 	g_pGameEventManager->RemoveListener(this);
 
 	return true;
 }
 
-void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
+void TickratePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
 {
 	char error[256];
 
@@ -1676,7 +1676,7 @@ void SamplePlugin::OnReloadGameDataCommand(const CCommandContext &context, const
 	}
 }
 
-void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
+void TickratePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
 {
 	if(IsChannelEnabled(LV_DETAILED))
 	{
@@ -1703,9 +1703,9 @@ void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCo
 				pszArg1++;
 			}
 
-			bool bIsSilent = *pszArg1 == Sample::ChatCommandSystem::GetSilentTrigger();
+			bool bIsSilent = *pszArg1 == Tickrate::ChatCommandSystem::GetSilentTrigger();
 
-			if(bIsSilent || *pszArg1 == Sample::ChatCommandSystem::GetPublicTrigger())
+			if(bIsSilent || *pszArg1 == Tickrate::ChatCommandSystem::GetPublicTrigger())
 			{
 				pszArg1++; // Skip a command character.
 
@@ -1756,7 +1756,7 @@ void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCo
 						Logger::Detailed(sBuffer);
 					}
 
-					Sample::ChatCommandSystem::Handle(aPlayerSlot, bIsSilent, vecArgs);
+					Tickrate::ChatCommandSystem::Handle(aPlayerSlot, bIsSilent, vecArgs);
 				}
 
 				RETURN_META(MRES_SUPERCEDE);
@@ -1767,7 +1767,7 @@ void SamplePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCo
 	RETURN_META(MRES_IGNORED);
 }
 
-void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
+void TickratePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
 {
 	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
@@ -1776,7 +1776,7 @@ void SamplePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config,
 	RETURN_META(MRES_IGNORED);
 }
 
-CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, 
+CServerSideClientBase *TickratePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, 
                                                          const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
 	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
@@ -1788,7 +1788,7 @@ CServerSideClientBase *SamplePlugin::OnConnectClientHook(const char *pszName, ns
 	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }
 
-bool SamplePlugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage)
+bool TickratePlugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage)
 {
 	auto *pClient = META_IFACEPTR(CServerSideClientBase);
 
@@ -1797,7 +1797,7 @@ bool SamplePlugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_
 	RETURN_META_VALUE(MRES_IGNORED, true);
 }
 
-void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
+void TickratePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 {
 	auto *pClient = META_IFACEPTR(CServerSideClientBase);
 
@@ -1806,7 +1806,7 @@ void SamplePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 	RETURN_META(MRES_IGNORED);
 }
 
-void SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage)
+void TickratePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage)
 {
 	CBufferStringGrowable<1024> sProtoOutput;
 
@@ -1819,7 +1819,7 @@ void SamplePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferS
 	sOutput.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);
 }
 
-void SamplePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
+void TickratePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
 {
 	aConcat.AppendHandleToBuffer(sOutput, "Window handle", aMessage.m_hWnd);
 	aConcat.AppendHandleToBuffer(sOutput, "Swap chain handle", aMessage.m_hSwapChain);
@@ -1830,7 +1830,7 @@ void SamplePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferS
 	aConcat.AppendToBuffer(sOutput, "Render height", aMessage.m_nRenderHeight);
 }
 
-void SamplePlugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList)
+void TickratePlugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList)
 {
 	for(const auto &it : vecEntityList)
 	{
@@ -1838,7 +1838,7 @@ void SamplePlugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString
 	}
 }
 
-void SamplePlugin::DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage)
+void TickratePlugin::DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage)
 {
 	aConcat.AppendToBuffer(sOutput, "Loop state");
 	DumpEngineLoopState(aConcat2, sOutput, aMessage.m_LoopState);
@@ -1846,12 +1846,12 @@ void SamplePlugin::DumpEventSimulate(const ConcatLineString &aConcat, const Conc
 	aConcat.AppendToBuffer(sOutput, "Last tick", aMessage.m_bLastTick);
 }
 
-void SamplePlugin::DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage)
+void TickratePlugin::DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage)
 {
 	aConcat.AppendToBuffer(sOutput, "Frame time", aMessage.m_flFrameTime);
 }
 
-void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
+void TickratePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
 {
 	aConcat.AppendStringToBuffer(sOutput, "Name", pClient->GetClientName());
 	aConcat.AppendToBuffer(sOutput, "Player slot", pClient->GetPlayerSlot().Get());
@@ -1864,12 +1864,12 @@ void SamplePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBuffer
 	aConcat.AppendToBuffer(sOutput, "Low violence", pClient->IsLowViolenceClient());
 }
 
-void SamplePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
+void TickratePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
 {
 	aConcat.AppendToBuffer(sOutput, "Disconnect reason", (int)eReason);
 }
 
-void SamplePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
+void TickratePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
 {
 	auto *pGetCvarValueMessage = m_pGetCvarValueMessage;
 
@@ -1896,7 +1896,7 @@ void SamplePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *psz
 	delete pMessage;
 }
 
-void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
+void TickratePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
 {
 	auto *pSayText2Message = m_pSayText2Message;
 
@@ -1949,7 +1949,7 @@ void SamplePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, 
 	delete pMessage;
 }
 
-void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
+void TickratePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
 {
 	auto *pTextMsg = m_pTextMsgMessage;
 
@@ -1991,9 +1991,9 @@ void SamplePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, 
 	delete pMessage;
 }
 
-void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
+void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
 {
-	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &SamplePlugin::OnConnectClientHook, true);
+	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &TickratePlugin::OnConnectClientHook, true);
 
 	// Initialize & hook game evetns.
 	// Initialize network messages.
@@ -2040,10 +2040,10 @@ void SamplePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const Gam
 	}
 }
 
-void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
-	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
-	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
+	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &TickratePlugin::OnProcessRespondCvarValueHook, false);
+	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &TickratePlugin::OnDisconectClientHook, false);
 
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -2071,7 +2071,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 	{
 		CSingleRecipientFilter aFilter(pClient->GetPlayerSlot());
 
-		const char *pszCvarName = SAMPLE_CLIENT_CVAR_NAME_LANGUAGE;
+		const char *pszCvarName = TICKRATE_CLIENT_CVAR_NAME_LANGUAGE;
 
 		int iCookie {};
 
@@ -2098,7 +2098,7 @@ void SamplePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSi
 	}
 }
 
-bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage)
+bool TickratePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage)
 {
 	auto sFoundSymbol = FindConVarSymbol(aMessage.name().c_str());
 
@@ -2161,10 +2161,10 @@ bool SamplePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, con
 	return true;
 }
 
-void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
+void TickratePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
 {
-	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &SamplePlugin::OnProcessRespondCvarValueHook, false);
-	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &SamplePlugin::OnDisconectClientHook, false);
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &TickratePlugin::OnProcessRespondCvarValueHook, false);
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &TickratePlugin::OnDisconectClientHook, false);
 
 	if(IsChannelEnabled(LS_DETAILED))
 	{
@@ -2180,22 +2180,22 @@ void SamplePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDis
 	}
 }
 
-CUtlSymbolLarge SamplePlugin::GetConVarSymbol(const char *pszName)
+CUtlSymbolLarge TickratePlugin::GetConVarSymbol(const char *pszName)
 {
 	return m_tableConVars.AddString(pszName);
 }
 
-CUtlSymbolLarge SamplePlugin::FindConVarSymbol(const char *pszName) const
+CUtlSymbolLarge TickratePlugin::FindConVarSymbol(const char *pszName) const
 {
 	return m_tableConVars.Find(pszName);
 }
 
-CUtlSymbolLarge SamplePlugin::GetLanguageSymbol(const char *pszName)
+CUtlSymbolLarge TickratePlugin::GetLanguageSymbol(const char *pszName)
 {
 	return m_tableLanguages.AddString(pszName);
 }
 
-CUtlSymbolLarge SamplePlugin::FindLanguageSymbol(const char *pszName) const
+CUtlSymbolLarge TickratePlugin::FindLanguageSymbol(const char *pszName) const
 {
 	return m_tableLanguages.Find(pszName);
 }

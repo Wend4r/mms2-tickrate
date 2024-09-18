@@ -1407,8 +1407,8 @@ void TickratePlugin::DumpGlobalVars(const ConcatLineString &aConcat, const Conca
 {
 	aConcat.AppendToBuffer(sOutput, "Base");
 	DumpGlobalVars(aConcat2, sOutput, reinterpret_cast<const CGlobalVarsBase *>(pGlobals));
-	aConcat.AppendToBuffer(sOutput, "Map name", pGlobals->mapname.ToCStr());
-	aConcat.AppendToBuffer(sOutput, "Start spot", pGlobals->startspot.ToCStr());
+	aConcat.AppendStringToBuffer(sOutput, "Map name", pGlobals->mapname.ToCStr());
+	aConcat.AppendStringToBuffer(sOutput, "Start spot", pGlobals->startspot.ToCStr());
 	aConcat.AppendToBuffer(sOutput, "Map name", static_cast<int>(pGlobals->eLoadType));
 	aConcat.AppendToBuffer(sOutput, "Is team play", pGlobals->mp_teamplay);
 	aConcat.AppendToBuffer(sOutput, "Max entities", pGlobals->maxEntities);

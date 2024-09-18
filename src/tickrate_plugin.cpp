@@ -441,7 +441,7 @@ void TickratePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslat
 		{
 			const auto &aTranslationsPhrase = pTranslations->GetPhrase(iFound);
 
-			if(!aTranslationsPhrase.Find(pszContryCode, paContent) || !aTranslationsPhrase.Find(pszServerContryCode, paContent))
+			if(!aTranslationsPhrase.Find(pszContryCode, paContent) && !aTranslationsPhrase.Find(pszServerContryCode, paContent))
 			{
 				CUtlString sMessage;
 

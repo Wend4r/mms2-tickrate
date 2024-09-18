@@ -542,7 +542,7 @@ int TickratePlugin::ChangeInternal(int nNew)
 {
 	int nOld = Set(nNew);
 
-	MessageFormat("Changed tickrate form %d to %d\n", nOld, nNew);
+	Logger::MessageFormat("The tickrate are changed from %d to %d\n", nOld, nNew);
 
 	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
@@ -560,7 +560,7 @@ int TickratePlugin::ChangeInternal(int nNew)
 
 				const auto &aPlayer = m_aPlayers[iClient];
 
-				const auto &aPhrase =aPlayer.GetChangeTickratePhrase();
+				const auto &aPhrase = aPlayer.GetChangeTickratePhrase();
 
 				if(aPhrase.m_pFormat && aPhrase.m_pContent)
 				{

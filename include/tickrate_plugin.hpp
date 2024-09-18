@@ -258,6 +258,8 @@ private: // Language (hash)map.
 private: // Fields.
 	IGameSystemFactory *m_pFactory = NULL;
 
+	int m_iTickIntervalPageBits = 0;
+
 	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;
 	INetworkMessageInternal *m_pSayText2Message = NULL;
 	INetworkMessageInternal *m_pTextMsgMessage = NULL;

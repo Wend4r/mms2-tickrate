@@ -30,6 +30,7 @@
 #include <any_config.hpp>
 
 #include <sourcehook/sourcehook.h>
+#include <sourcehook/sh_memory.h>
 
 #include <filesystem.h>
 #include <igameeventsystem.h>
@@ -881,6 +882,11 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 		return false;
 	}
 
+	if(SourceHook::GetPageBits(pTickInterval, &m_iTickIntervalPageBits))
+	{
+		SourceHook::SetMemAccess(pTickInterval, sizeof(pTickInterval), m_iTickIntervalPageBits | SH_MEM_WRITE);
+	}
+
 	if(!RegisterTickInterval(pTickInterval))
 	{
 		if(error && maxlen)
@@ -896,6 +902,15 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 
 bool TickratePlugin::UnregisterTick(char *error, size_t maxlen)
 {
+	float *pTickInterval = GetGameDataStorage().GetTick().GetIntervalPointer();
+
+	if(!pTickInterval)
+	{
+		return true;
+	}
+
+	SourceHook::SetMemAccess(pTickInterval, sizeof(pTickInterval), m_iTickIntervalPageBits);
+
 	return true;
 }
 

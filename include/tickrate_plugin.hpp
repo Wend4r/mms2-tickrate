@@ -162,6 +162,7 @@ public: // Tickrate.
 	int Get() override;
 	int Set(int nNew) override;
 	int Change(int nNew) override;
+	int ChangeInternal(int nNew);
 
 public: // CBaseGameSystem
 	bool Init() override;

@@ -81,7 +81,10 @@ TickratePlugin::TickratePlugin()
     }, 0, LV_DEFAULT, TICKRATE_LOGGINING_COLOR),
     m_aSVTickrateConVar("sv_tickrate", FCVAR_RELEASE | FCVAR_GAMEDLL, "Server tickrate", TICKRATE_DEFAULT, [](ConVar<int> *pConVar, const CSplitScreenSlot aSlot, const int *pNewValue, const int *pOldValue)
     {
-    	s_aTickratePlugin.Change(*pNewValue);
+    	if(*pNewValue != *pOldValue)
+    	{
+    		s_aTickratePlugin.ChangeInternal(*pNewValue);
+    	}
     }),
     m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
     m_mapConVarCookies(DefLessFunc(const CUtlSymbolLarge)),
@@ -527,6 +530,15 @@ int TickratePlugin::Set(int nNew)
 }
 
 int TickratePlugin::Change(int nNew)
+{
+	int nOld = Get();
+
+	m_aSVTickrateConVar.SetValue(nNew);
+
+	return nOld;
+}
+
+int TickratePlugin::ChangeInternal(int nNew)
 {
 	int nOld = Set(nNew);
 

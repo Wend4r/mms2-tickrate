@@ -159,10 +159,35 @@ public: // ITickrate
 	IPlayerData *GetPlayerData(const CPlayerSlot &aSlot) override;
 
 public: // Tickrate.
+	class CChangedData
+	{
+	public:
+		CChangedData(int nInitOld, int nInitNew);
+
+	public:
+		int GetOld() const;
+		float GetOldInterval() const;
+
+		int GetNew() const;
+		float GetNewInterval() const;
+
+		float GetMultiple() const;
+
+	private:
+		int m_nOld;
+		float m_flOldInterval;
+
+		int m_nNew;
+		float m_flNewInterval;
+
+		float m_flMultiple;
+	};
+
 	int Get() override;
 	int Set(int nNew) override;
 	int Change(int nNew) override;
 	int ChangeInternal(int nNew);
+	void ChangeGlobals(CGlobalVars *pGlobals, const CChangedData &aData);
 
 public: // CBaseGameSystem
 	bool Init() override;
@@ -222,6 +247,8 @@ public: // SourceHooks.
 
 public: // Dump ones.
 	void DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage);
+	void DumpGlobalVars(const ConcatLineString &aConcat, CBufferString &sOutput, const CGlobalVarsBase *pGlobals);
+	void DumpGlobalVars(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const CGlobalVars *pGlobals);
 	void DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage);
 	void DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList);
 	void DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage);

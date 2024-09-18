@@ -497,6 +497,40 @@ ITickrate::IPlayerData *TickratePlugin::GetPlayerData(const CPlayerSlot &aSlot)
 	return &m_aPlayers[aSlot.Get()];
 }
 
+TickratePlugin::CChangedData::CChangedData(int nInitOld, int nInitNew)
+ :  m_nOld(nInitOld), 
+    m_flOldInterval(1.0f / nInitOld), 
+    m_nNew(nInitNew), 
+    m_flNewInterval(1.0f / nInitNew), 
+    m_flMultiple(nInitOld / nInitNew)
+{
+}
+
+int TickratePlugin::CChangedData::GetOld() const
+{
+	return m_nOld;
+}
+
+float TickratePlugin::CChangedData::GetOldInterval() const
+{
+	return m_flOldInterval;
+}
+
+int TickratePlugin::CChangedData::GetNew() const
+{
+	return m_nNew;
+}
+
+float TickratePlugin::CChangedData::GetNewInterval() const
+{
+	return m_flNewInterval;
+}
+
+float TickratePlugin::CChangedData::GetMultiple() const
+{
+	return m_flMultiple;
+}
+
 int TickratePlugin::Get()
 {
 	float *pTickInterval = GetTickIntervalPointer();
@@ -517,14 +551,30 @@ int TickratePlugin::Set(int nNew)
 
 	float *pTickInterval = GetTickIntervalPointer();
 
-	if(pTickInterval)
-	{
-		*pTickInterval = 1.0f / nNew;
-	}
-	else
+	if(!pTickInterval)
 	{
 		WarningFormat("%s: %s\n", __FUNCTION__, "Tick interval is not ready");
+
+		return nOld;
 	}
+
+	const CChangedData aData(nOld, nNew);
+
+	INetworkGameServer *pServer = g_pNetworkServerService->GetIGameServer();
+
+	if(pServer)
+	{
+		pServer->SetServerTick((int)(pServer->GetServerTick() * aData.GetMultiple()));
+
+		auto *pGlobals = pServer->GetGlobals();
+
+		if(pGlobals)
+		{
+			ChangeGlobals(pGlobals, aData);
+		}
+	}
+
+	*pTickInterval = aData.GetNewInterval();
 
 	return nOld;
 }
@@ -573,6 +623,32 @@ int TickratePlugin::ChangeInternal(int nNew)
 	}
 
 	return nOld;
+}
+
+void TickratePlugin::ChangeGlobals(CGlobalVars *pGlobals, const CChangedData &aData)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		const auto &aConcat = s_aEmbedConcat, 
+		           &aConcat2 = s_aEmbed2Concat;
+
+		CBufferStringGrowable<1024> sMessage;
+
+		sMessage.Format("Global vars:\n");
+		DumpGlobalVars(aConcat, aConcat2, sMessage, pGlobals);
+
+		Logger::Detailed(sMessage);
+	}
+
+	float flNewInterval = aData.GetNewInterval(), 
+	      flMultiple = aData.GetMultiple();
+
+	pGlobals->absoluteframetime = flNewInterval;
+	pGlobals->absoluteframestarttimestddev = flNewInterval;
+
+	pGlobals->frametime *= flMultiple;
+	pGlobals->curtime *= flMultiple;
+	pGlobals->rendertime *= flMultiple;
 }
 
 bool TickratePlugin::Init()
@@ -1302,6 +1378,43 @@ void TickratePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBuffe
 	sOutput.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);
 }
 
+void TickratePlugin::DumpGlobalVars(const ConcatLineString &aConcat, CBufferString &sOutput, const CGlobalVarsBase *pGlobals)
+{
+	aConcat.AppendToBuffer(sOutput, "Real time", pGlobals->realtime);
+	aConcat.AppendToBuffer(sOutput, "Frame count", pGlobals->framecount);
+	aConcat.AppendToBuffer(sOutput, "Absolute frame time", pGlobals->absoluteframetime);
+	aConcat.AppendToBuffer(sOutput, "Absolute frame start time STD (Dev)", pGlobals->absoluteframestarttimestddev);
+	aConcat.AppendToBuffer(sOutput, "Max clients", pGlobals->maxClients);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#1)", pGlobals->unknown1);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#2)", pGlobals->unknown2);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#3)", pGlobals->unknown3);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#4)", pGlobals->unknown4);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#5)", pGlobals->unknown5);
+	aConcat.AppendToBuffer(sOutput, "Warning function", pGlobals->m_pfnWarningFunc);
+	aConcat.AppendToBuffer(sOutput, "Frame time", pGlobals->frametime);
+	aConcat.AppendToBuffer(sOutput, "Current time", pGlobals->curtime);
+	aConcat.AppendToBuffer(sOutput, "Render time", pGlobals->rendertime);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#6)", pGlobals->unknown6);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#7)", pGlobals->unknown7);
+	aConcat.AppendToBuffer(sOutput, "Is simulation", pGlobals->m_bInSimulation);
+	aConcat.AppendToBuffer(sOutput, "Is enable assertions", pGlobals->m_bEnableAssertions);
+	aConcat.AppendToBuffer(sOutput, "Tick count", pGlobals->tickcount);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#8)", pGlobals->unknown8);
+	aConcat.AppendToBuffer(sOutput, "Unknown (#9)", pGlobals->unknown9);
+	aConcat.AppendToBuffer(sOutput, "Subtick fraction", pGlobals->m_flSubtickFraction);
+}
+void TickratePlugin::DumpGlobalVars(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const CGlobalVars *pGlobals)
+{
+	aConcat.AppendToBuffer(sOutput, "Base");
+	DumpGlobalVars(aConcat2, sOutput, reinterpret_cast<const CGlobalVarsBase *>(pGlobals));
+	aConcat.AppendToBuffer(sOutput, "Map name", pGlobals->mapname.ToCStr());
+	aConcat.AppendToBuffer(sOutput, "Start spot", pGlobals->startspot.ToCStr());
+	aConcat.AppendToBuffer(sOutput, "Map name", static_cast<int>(pGlobals->eLoadType));
+	aConcat.AppendToBuffer(sOutput, "Is team play", pGlobals->mp_teamplay);
+	aConcat.AppendToBuffer(sOutput, "Max entities", pGlobals->maxEntities);
+	aConcat.AppendToBuffer(sOutput, "Server count", pGlobals->serverCount);
+}
+
 void TickratePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
 {
 	aConcat.AppendHandleToBuffer(sOutput, "Window handle", aMessage.m_hWnd);
@@ -1494,9 +1607,12 @@ void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const G
 		}
 	}
 
+	auto *pGlobals = pNetServer->GetGlobals();
+
 	if(IsChannelEnabled(LS_DETAILED))
 	{
-		const auto &aConcat = s_aEmbedConcat;
+		const auto &aConcat = s_aEmbedConcat, 
+		           &aConcat2 = s_aEmbed2Concat;
 
 		CBufferStringGrowable<1024> sMessage;
 
@@ -1514,6 +1630,12 @@ void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const G
 #endif
 		sMessage.AppendFormat("Register globals:\n");
 		DumpRegisterGlobals(aConcat, sMessage);
+
+		if(pGlobals)
+		{
+			sMessage.AppendFormat("Global vars:\n");
+			DumpGlobalVars(aConcat, aConcat2, sMessage, pGlobals);
+		}
 
 		Logger::Detailed(sMessage);
 	}

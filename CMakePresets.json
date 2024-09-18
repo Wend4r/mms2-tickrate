@@ -8,10 +8,6 @@
 			"description": "Build using Ninja generator",
 			"generator": "Ninja",
 			"binaryDir": "${sourceDir}/build/${presetName}",
-			"cacheVariables":
-			{
-				"SOURCESDK_MALLOC_OVERRIDE": true
-			},
 			"hidden": true
 		},
 		{
@@ -40,8 +36,7 @@
 			"inherits": "default",
 			"cacheVariables":
 			{
-				"CMAKE_BUILD_TYPE": "Debug",
-				"SOURCESDK_MALLOC_OVERRIDE": false
+				"CMAKE_BUILD_TYPE": "Debug"
 			}
 		},
 		{
@@ -52,8 +47,7 @@
 			"inherits": "default",
 			"cacheVariables":
 			{
-				"CMAKE_BUILD_TYPE": "Release",
-				"SOURCESDK_MALLOC_OVERRIDE": false
+				"CMAKE_BUILD_TYPE": "Release"
 			}
 		}
 	],

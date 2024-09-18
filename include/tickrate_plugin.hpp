@@ -262,8 +262,6 @@ private: // Fields.
 	INetworkMessageInternal *m_pSayText2Message = NULL;
 	INetworkMessageInternal *m_pTextMsgMessage = NULL;
 
-	CUtlVector<CUtlString> m_vecGameEvents;
-
 	CLanguage m_aServerLanguage;
 	CUtlVector<CLanguage> m_vecLanguages;
 

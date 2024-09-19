@@ -81,9 +81,9 @@ public:
 	virtual float *GetTickIntervalPointer() const = 0;
 
 	/**
-	 * @brief Gets a tick interval in double type.
+	 * @brief Gets a second tick interval.
 	 * 
-	 * @return              A pointer to a tick interval.
+	 * @return              A pointer to a second tick interval.
 	 */
 	virtual double *GetTickInterval2Pointer() const = 0;
 

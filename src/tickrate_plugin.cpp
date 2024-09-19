@@ -406,7 +406,7 @@ void TickratePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguag
 
 void TickratePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
 {
-	struct
+	const struct
 	{
 		const char *pszName;
 		TranslatedPhrase *pTranslated;
@@ -1004,7 +1004,7 @@ bool TickratePlugin::UnregisterTick(char *error, size_t maxlen)
 
 bool TickratePlugin::RegisterNetMessages(char *error, size_t maxlen)
 {
-	struct
+	const struct
 	{
 		const char *pszName;
 		INetworkMessageInternal **ppInternal;
@@ -1024,7 +1024,7 @@ bool TickratePlugin::RegisterNetMessages(char *error, size_t maxlen)
 		},
 	};
 
-	for(auto &aMessageInitializer : aMessageInitializers)
+	for(const auto &aMessageInitializer : aMessageInitializers)
 	{
 		const char *pszMessageName = aMessageInitializer.pszName;
 

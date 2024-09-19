@@ -130,7 +130,7 @@ bool Tickrate::Provider::LoadGameData(const char *pszBaseDir, const char *pszPat
 
 bool Tickrate::Provider::GameDataStorage::Load(IGameData *pRoot, const char *pszBaseConfigDir, const char *pszPathID, GameData::CBufferStringVector &vecMessages)
 {
-	struct
+	const struct
 	{
 		const char *pszFilename;
 		bool (Tickrate::Provider::GameDataStorage::*pfnLoad)(IGameData *, KeyValues3 *, GameData::CBufferStringVector &);
@@ -160,11 +160,11 @@ bool Tickrate::Provider::GameDataStorage::Load(IGameData *pRoot, const char *psz
 
 	AnyConfig::LoadFromFile_Generic_t aLoadPresets({{&sError, NULL, pszPathID}, g_KV3Format_Generic});
 
-	for(size_t n = 0, nSize = ARRAYSIZE(aConfigs); n < nSize; n++)
+	for(const auto &aConfig : aConfigs)
 	{
 		AnyConfig::Anyone aGameConfig;
 
-		snprintf((char *)sConfigFile, sizeof(sConfigFile), "%s" CORRECT_PATH_SEPARATOR_S "%s", pszBaseConfigDir, aConfigs[n].pszFilename);
+		snprintf((char *)sConfigFile, sizeof(sConfigFile), "%s" CORRECT_PATH_SEPARATOR_S "%s", pszBaseConfigDir, aConfig.pszFilename);
 
 		CUtlVector<CUtlString> vecConfigFiles;
 
@@ -190,9 +190,7 @@ bool Tickrate::Provider::GameDataStorage::Load(IGameData *pRoot, const char *psz
 			continue;
 		}
 
-		auto &aConfig = aConfigs[n];
-
-		if(!(this->*(aConfigs[n].pfnLoad))(pRoot, aGameConfig.Get(), vecMessages))
+		if(!(this->*(aConfig.pfnLoad))(pRoot, aGameConfig.Get(), vecMessages))
 		{
 			const char *pszMessageConcat[] = {"Failed to ", "parse \"", sConfigFile, "\" file", ": ", sError.Get()};
 

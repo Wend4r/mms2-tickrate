@@ -834,8 +834,6 @@ bool TickratePlugin::RegisterGameResource(char *error, size_t maxlen)
 		}
 	}
 
-	Logger::DetailedFormat("RegisterGameEntitySystem\n");
-
 	if(!RegisterGameEntitySystem(*pGameEntitySystem))
 	{
 		if(error && maxlen)

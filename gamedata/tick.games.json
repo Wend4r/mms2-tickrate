@@ -18,6 +18,21 @@
 				{
 					"read_offs32": 23
 				}
+			},
+
+			"(double *)&tick_interval":
+			{
+				"signature": "CEngineServiceMgr::SleepAfterMainLoop",
+
+				"win64":
+				{
+					"read_offs32": 310
+				},
+
+				"linuxsteamrt64":
+				{
+					"read_offs32": 184
+				}
 			}
 		},
 
@@ -29,6 +44,19 @@
 
 				"win64": "40 53 48 83 EC 30 80 B9 ? ? ? ? ? 48 8B D9 0F 29 74 24 ? 66 0F 6E B1",
 				"linuxsteamrt64": "80 BF ? ? ? ? ? 66 0F EF C0 F3 0F 2A 87"
+			},
+
+			"CEngineServiceMgr::SleepAfterMainLoop":
+			{
+				"library": "engine2",
+
+				"used_strings":
+				[
+					"%g: FilterTime took target %g as time base instead of actual %g, diff %g\n"
+				],
+
+				"win64": "48 89 5C 24 ? 57 48 81 EC 80 00 00 00 48 8B BC 24",
+				"linuxsteamrt64": "55 66 0F 28 E1"
 			}
 		}
 	}

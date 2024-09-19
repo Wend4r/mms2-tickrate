@@ -98,6 +98,7 @@ public: // ITickrate
 	CFrame *GetHostFramePointer() const override;
 	IGameEventManager2 **GetGameEventManagerPointer() const override;
 	float *GetTickIntervalPointer() const override;
+	double *GetTickInterval2Pointer() const override;
 
 	class CLanguage : public ITickrate::ILanguage
 	{
@@ -171,6 +172,7 @@ public: // Tickrate.
 
 		int GetNew() const;
 		float GetNewInterval() const;
+		double GetNewInterval2() const;
 
 		float GetMultiple() const;
 
@@ -180,6 +182,7 @@ public: // Tickrate.
 
 		int m_nNew;
 		float m_flNewInterval;
+		double m_dblNewInterval;
 
 		float m_flMultiple;
 	};
@@ -290,6 +293,7 @@ private: // Fields.
 	IGameSystemFactory *m_pFactory = NULL;
 
 	int m_iTickIntervalPageBits = 0;
+	int m_iTickInterval2PageBits = 0;
 
 	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;
 	INetworkMessageInternal *m_pSayText2Message = NULL;

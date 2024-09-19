@@ -173,6 +173,7 @@ namespace Tickrate
 
 			public:
 				float *GetIntervalPointer() const;
+				double *GetInterval2Pointer() const;
 
 			private:
 				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
@@ -180,6 +181,7 @@ namespace Tickrate
 
 			private: // Addresses.
 				float *m_pInterval = nullptr;
+				double *m_pInterval2 = nullptr;
 			}; // CTick
 
 			const CGameResource &GetGameResource() const;

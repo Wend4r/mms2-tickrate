@@ -80,6 +80,13 @@ public:
 	 */
 	virtual float *GetTickIntervalPointer() const = 0;
 
+	/**
+	 * @brief Gets a tick interval in double type.
+	 * 
+	 * @return              A pointer to a tick interval.
+	 */
+	virtual double *GetTickInterval2Pointer() const = 0;
+
 public: // Language ones.
 	/**
 	 * @brief A player data language interface.

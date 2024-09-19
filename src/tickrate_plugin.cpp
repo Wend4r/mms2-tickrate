@@ -338,6 +338,11 @@ float *TickratePlugin::GetTickIntervalPointer() const
 	return GetGameDataStorage().GetTick().GetIntervalPointer();
 }
 
+double *TickratePlugin::GetTickInterval2Pointer() const
+{
+	return GetGameDataStorage().GetTick().GetInterval2Pointer();
+}
+
 TickratePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
  :  m_sName(sInitName), 
     m_sCountryCode(pszInitCountryCode)
@@ -508,6 +513,7 @@ TickratePlugin::CChangedData::CChangedData(int nInitOld, int nInitNew)
     m_flOldInterval(1.0f / nInitOld), 
     m_nNew(nInitNew), 
     m_flNewInterval(1.0f / nInitNew), 
+    m_dblNewInterval(1.02l / nInitNew), 
     m_flMultiple(nInitOld / nInitNew)
 {
 }
@@ -530,6 +536,11 @@ int TickratePlugin::CChangedData::GetNew() const
 float TickratePlugin::CChangedData::GetNewInterval() const
 {
 	return m_flNewInterval;
+}
+
+double TickratePlugin::CChangedData::GetNewInterval2() const
+{
+	return m_dblNewInterval;
 }
 
 float TickratePlugin::CChangedData::GetMultiple() const
@@ -564,6 +575,15 @@ int TickratePlugin::Set(int nNew)
 		return nOld;
 	}
 
+	double *pTickInterval2 = GetTickInterval2Pointer();
+
+	if(!pTickInterval2)
+	{
+		WarningFormat("%s: %s (#2)\n", __FUNCTION__, "Tick interval is not ready");
+
+		return nOld;
+	}
+
 	const CChangedData aData(nOld, nNew);
 
 	CFrame *pHostFrame = GetHostFramePointer();
@@ -588,6 +608,7 @@ int TickratePlugin::Set(int nNew)
 	}
 
 	*pTickInterval = aData.GetNewInterval();
+	*pTickInterval2 = aData.GetNewInterval2();
 
 	return nOld;
 }
@@ -1005,6 +1026,23 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 	if(SourceHook::GetPageBits(pTickInterval, &m_iTickIntervalPageBits))
 	{
 		SourceHook::SetMemAccess(pTickInterval, sizeof(pTickInterval), m_iTickIntervalPageBits | SH_MEM_WRITE);
+	}
+
+	double *pTickInterval2 = GetTickInterval2Pointer();
+
+	if(!pTickInterval2)
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to get a tick interval (#2)", maxlen);
+		}
+
+		return false;
+	}
+
+	if(SourceHook::GetPageBits(pTickInterval2, &m_iTickInterval2PageBits))
+	{
+		SourceHook::SetMemAccess(pTickInterval2, sizeof(pTickInterval2), m_iTickInterval2PageBits | SH_MEM_WRITE);
 	}
 
 	if(!RegisterTickInterval(pTickInterval))

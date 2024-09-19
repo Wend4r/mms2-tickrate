@@ -990,7 +990,7 @@ bool TickratePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 
 bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 {
-	float *pTickInterval = GetGameDataStorage().GetTick().GetIntervalPointer();
+	float *pTickInterval = GetTickIntervalPointer();
 
 	if(!pTickInterval)
 	{
@@ -1022,7 +1022,7 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 
 bool TickratePlugin::UnregisterTick(char *error, size_t maxlen)
 {
-	float *pTickInterval = GetGameDataStorage().GetTick().GetIntervalPointer();
+	float *pTickInterval = GetTickIntervalPointer();
 
 	if(!pTickInterval)
 	{

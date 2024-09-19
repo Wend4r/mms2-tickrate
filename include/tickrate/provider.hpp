@@ -109,14 +109,14 @@ namespace Tickrate
 				void Reset();
 
 			public:
-				CBaseGameSystemFactory **GetFirstGameSystemPointer() const;
+				CBaseGameSystemFactory **GetFirstPointer() const;
 
 			private:
 				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
 				GameData::Config m_aGameConfig;
 
 			private: // Addresses.
-				CBaseGameSystemFactory **m_ppFirstGameSystem = nullptr;
+				CBaseGameSystemFactory **m_ppFirst = nullptr;
 			}; // CGameSystem
 
 			class CSource2Server

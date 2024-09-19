@@ -319,7 +319,7 @@ CGameEntitySystem **TickratePlugin::GetGameEntitySystemPointer() const
 
 CBaseGameSystemFactory **TickratePlugin::GetFirstGameSystemPointer() const
 {
-	return GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer();
+	return GetGameDataStorage().GetGameSystem().GetFirstPointer();
 }
 
 IGameEventManager2 **TickratePlugin::GetGameEventManagerPointer() const
@@ -866,7 +866,7 @@ bool TickratePlugin::UnregisterGameResource(char *error, size_t maxlen)
 
 bool TickratePlugin::RegisterGameFactory(char *error, size_t maxlen)
 {
-	CBaseGameSystemFactory **ppFactory = GetGameDataStorage().GetGameSystem().GetFirstGameSystemPointer();
+	CBaseGameSystemFactory **ppFactory = GetGameDataStorage().GetGameSystem().GetFirstPointer();
 
 	if(!ppFactory)
 	{

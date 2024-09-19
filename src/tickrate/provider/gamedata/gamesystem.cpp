@@ -28,7 +28,7 @@ Tickrate::Provider::GameDataStorage::CGameSystem::CGameSystem()
 
 		aCallbacks.Insert(m_aGameConfig.GetSymbol("CBaseGameSystemFactory::sm_pFirst"), [&](const CUtlSymbolLarge &aKey, const DynLibUtils::CMemory &aAddress)
 		{
-			m_ppFirstGameSystem = aAddress.RCast<decltype(m_ppFirstGameSystem)>();
+			m_ppFirst = aAddress.RCast<decltype(m_ppFirst)>();
 		});
 
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
@@ -42,10 +42,10 @@ bool Tickrate::Provider::GameDataStorage::CGameSystem::Load(IGameData *pRoot, Ke
 
 void Tickrate::Provider::GameDataStorage::CGameSystem::Reset()
 {
-	m_ppFirstGameSystem = nullptr;
+	m_ppFirst = nullptr;
 }
 
-CBaseGameSystemFactory **Tickrate::Provider::GameDataStorage::CGameSystem::GetFirstGameSystemPointer() const
+CBaseGameSystemFactory **Tickrate::Provider::GameDataStorage::CGameSystem::GetFirstPointer() const
 {
-	return m_ppFirstGameSystem;
+	return m_ppFirst;
 }

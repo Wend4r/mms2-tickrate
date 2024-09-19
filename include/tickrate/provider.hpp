@@ -39,11 +39,13 @@
 #	define TICKRATE_GAMECONFIG_FOLDER_DIR "gamedata"
 #	define TICKRATE_GAMECONFIG_GAMERESOURCE_FILENAME "gameresource.games.*"
 #	define TICKRATE_GAMECONFIG_GAMESYSTEM_FILENAME "gamesystem.games.*"
+#	define TICKRATE_GAMECONFIG_HOSTFRAME_FILENAME "hostframe.games.*"
 #	define TICKRATE_GAMECONFIG_SOURCE2SERVER_FILENAME "source2server.games.*"
 #	define TICKRATE_GAMECONFIG_TICK_FILENAME "tick.games.*"
 
 class CBaseGameSystemFactory;
 class CGameEventManager;
+struct CFrame;
 namespace Tickrate
 {
 	class Provider : public IGameData
@@ -75,6 +77,7 @@ namespace Tickrate
 		protected:
 			bool LoadGameResource(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 			bool LoadGameSystem(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+			bool LoadHostFrame(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 			bool LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 			bool LoadTick(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
 
@@ -119,6 +122,26 @@ namespace Tickrate
 				CBaseGameSystemFactory **m_ppFirst = nullptr;
 			}; // CGameSystem
 
+			class CHostFrame
+			{
+			public:
+				CHostFrame();
+
+			public:
+				bool Load(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages);
+				void Reset();
+
+			public:
+				CFrame *GetPointer() const;
+
+			private:
+				GameData::Config::Addresses::ListenerCallbacksCollector m_aAddressCallbacks;
+				GameData::Config m_aGameConfig;
+
+			private: // Addresses.
+				CFrame *m_p = nullptr;
+			}; // CHostFrame
+
 			class CSource2Server
 			{
 			public:
@@ -161,12 +184,14 @@ namespace Tickrate
 
 			const CGameResource &GetGameResource() const;
 			const CGameSystem &GetGameSystem() const;
+			const CHostFrame &GetHostFrame() const;
 			const CSource2Server &GetSource2Server() const;
 			const CTick &GetTick() const;
 
 		private:
 			CGameResource m_aGameResource;
 			CGameSystem m_aGameSystem;
+			CHostFrame m_aHostFrame;
 			CSource2Server m_aSource2Server;
 			CTick m_aTick;
 		}; // GameDataStorage

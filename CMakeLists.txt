@@ -66,6 +66,7 @@ include(cmake/translations.cmake)
 set(SOURCE_FILES
 	${SOURCE_TICKRATE_PROVIDER_GAMEDATA_DIR}/gameresource.cpp
 	${SOURCE_TICKRATE_PROVIDER_GAMEDATA_DIR}/gamesystem.cpp
+	${SOURCE_TICKRATE_PROVIDER_GAMEDATA_DIR}/hostframe.cpp
 	${SOURCE_TICKRATE_PROVIDER_GAMEDATA_DIR}/source2server.cpp
 	${SOURCE_TICKRATE_PROVIDER_GAMEDATA_DIR}/tick.cpp
 	${SOURCE_TICKRATE_DIR}/chat_command_system.cpp

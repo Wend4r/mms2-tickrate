@@ -41,18 +41,23 @@ namespace SourceMM
 	class ISmmPlugin;
 }; // SourceMM
 
-class CGlobalVars;
+class CLoopTypeClientServer;
 class IGameEventSystem;
 class CEntitySystem;
 class CGameEntitySystem;
 class CBaseGameSystemFactory;
 class CGameEventManager;
 class IGameEventManager2;
+class CGlobalVars;
 
 #	include <interfaces/interfaces.h>
 #	include <igamesystemfactory.h>
 
+#	define CLIENTSERVERENGINELOOPSERVICE "ClientServerEngineLoopService_001"
+
 #	define GLOBALS_APPEND_VARIABLE(var) aConcat.AppendPointerToBuffer(sOutput, #var, var);
+
+extern CLoopTypeClientServer *g_pClientServerEngineLoopService;
 
 extern IGameEventSystem *g_pGameEventSystem;
 extern CEntitySystem *g_pEntitySystem;

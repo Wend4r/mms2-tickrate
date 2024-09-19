@@ -33,6 +33,7 @@
 #include <sourcehook/sh_memory.h>
 
 #include <filesystem.h>
+#include <frame.h>
 #include <igameeventsystem.h>
 #include <inetchannel.h>
 #include <networksystem/inetworkmessages.h>
@@ -322,6 +323,11 @@ CBaseGameSystemFactory **TickratePlugin::GetFirstGameSystemPointer() const
 	return GetGameDataStorage().GetGameSystem().GetFirstPointer();
 }
 
+CFrame *TickratePlugin::GetHostFramePointer() const
+{
+	return GetGameDataStorage().GetHostFrame().GetPointer();
+}
+
 IGameEventManager2 **TickratePlugin::GetGameEventManagerPointer() const
 {
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
@@ -560,6 +566,15 @@ int TickratePlugin::Set(int nNew)
 
 	const CChangedData aData(nOld, nNew);
 
+	CFrame *pHostFrame = GetHostFramePointer();
+
+	Logger::MessageFormat("pHostFrame = %p\n", pHostFrame);
+
+	if(pHostFrame)
+	{
+		ChangeHostFrame(pHostFrame, aData);
+	}
+
 	INetworkGameServer *pServer = g_pNetworkServerService->GetIGameServer();
 
 	if(pServer)
@@ -623,6 +638,27 @@ int TickratePlugin::ChangeInternal(int nNew)
 	}
 
 	return nOld;
+}
+
+void TickratePlugin::ChangeHostFrame(CFrame *pHostFrame, const CChangedData &aData)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		const auto &aConcat = s_aEmbedConcat, 
+		           &aConcat2 = s_aEmbed2Concat;
+
+		CBufferStringGrowable<1024> sMessage;
+
+		sMessage.Format("Host frame:\n");
+		DumpHostFrame(aConcat, sMessage, pHostFrame);
+
+		Logger::Detailed(sMessage);
+	}
+
+	float flNewInterval = aData.GetNewInterval();
+
+	pHostFrame->time_unbounded = flNewInterval;
+	pHostFrame->time_computationduration = flNewInterval;
 }
 
 void TickratePlugin::ChangeGlobals(CGlobalVars *pGlobals, const CChangedData &aData)
@@ -1417,6 +1453,14 @@ void TickratePlugin::DumpGlobalVars(const ConcatLineString &aConcat, const Conca
 	aConcat.AppendToBuffer(sOutput, "Is team play", pGlobals->mp_teamplay);
 	aConcat.AppendToBuffer(sOutput, "Max entities", pGlobals->maxEntities);
 	aConcat.AppendToBuffer(sOutput, "Server count", pGlobals->serverCount);
+}
+
+void TickratePlugin::DumpHostFrame(const ConcatLineString &aConcat, CBufferString &sOutput, const CFrame *pHostFrame)
+{
+	aConcat.AppendToBuffer(sOutput, "Start time STD deviation", pHostFrame->starttime_stddeviation);
+	aConcat.AppendToBuffer(sOutput, "Time STD deviation", pHostFrame->time_stddeviation);
+	aConcat.AppendToBuffer(sOutput, "Time computation duration", pHostFrame->time_computationduration);
+	aConcat.AppendToBuffer(sOutput, "Time unbounded", pHostFrame->time_unbounded);
 }
 
 void TickratePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)

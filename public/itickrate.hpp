@@ -35,6 +35,7 @@
 
 class CGameEntitySystem;
 class CBaseGameSystemFactory;
+struct CFrame;
 class IGameEventManager2;
 
 /**
@@ -57,6 +58,13 @@ public:
 	 * @return              A double pointer to a first game system.
 	 */
 	virtual CBaseGameSystemFactory **GetFirstGameSystemPointer() const = 0;
+
+	/**
+	 * @brief Gets a global vars pointer.
+	 * 
+	 * @return              A double pointer to a first game system.
+	 */
+	virtual CFrame *GetHostFramePointer() const = 0;
 
 	/**
 	 * @brief Gets a game event manager.

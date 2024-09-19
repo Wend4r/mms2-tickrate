@@ -145,6 +145,10 @@ bool Tickrate::Provider::GameDataStorage::Load(IGameData *pRoot, const char *psz
 			&GameDataStorage::LoadGameSystem
 		},
 		{
+			TICKRATE_GAMECONFIG_HOSTFRAME_FILENAME,
+			&GameDataStorage::LoadHostFrame
+		},
+		{
 			TICKRATE_GAMECONFIG_SOURCE2SERVER_FILENAME,
 			&GameDataStorage::LoadSource2Server
 		},
@@ -215,6 +219,11 @@ bool Tickrate::Provider::GameDataStorage::LoadGameSystem(IGameData *pRoot, KeyVa
 	return m_aGameSystem.Load(pRoot, pGameConfig, vecMessages);
 }
 
+bool Tickrate::Provider::GameDataStorage::LoadHostFrame(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
+{
+	return m_aHostFrame.Load(pRoot, pGameConfig, vecMessages);
+}
+
 bool Tickrate::Provider::GameDataStorage::LoadSource2Server(IGameData *pRoot, KeyValues3 *pGameConfig, GameData::CBufferStringVector &vecMessages)
 {
 	return m_aSource2Server.Load(pRoot, pGameConfig, vecMessages);
@@ -233,6 +242,11 @@ const Tickrate::Provider::GameDataStorage::CGameResource &Tickrate::Provider::Ga
 const Tickrate::Provider::GameDataStorage::CGameSystem &Tickrate::Provider::GameDataStorage::GetGameSystem() const
 {
 	return m_aGameSystem;
+}
+
+const Tickrate::Provider::GameDataStorage::CHostFrame &Tickrate::Provider::GameDataStorage::GetHostFrame() const
+{
+	return m_aHostFrame;
 }
 
 const Tickrate::Provider::GameDataStorage::CSource2Server &Tickrate::Provider::GameDataStorage::GetSource2Server() const

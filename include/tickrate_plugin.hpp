@@ -246,15 +246,15 @@ public: // SourceHooks.
 	void OnDisconectClientHook(ENetworkDisconnectionReason eReason);
 
 public: // Dump ones.
-	void DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage);
-	void DumpGlobalVars(const ConcatLineString &aConcat, CBufferString &sOutput, const CGlobalVarsBase *pGlobals);
-	void DumpGlobalVars(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const CGlobalVars *pGlobals);
-	void DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage);
-	void DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList);
-	void DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage);
-	void DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage);
-	void DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient);
-	void DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason);
+	static void DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage);
+	static void DumpGlobalVars(const ConcatLineString &aConcat, CBufferString &sOutput, const CGlobalVarsBase *pGlobals);
+	static void DumpGlobalVars(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const CGlobalVars *pGlobals);
+	static void DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage);
+	static void DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList);
+	static void DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage);
+	static void DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage);
+	static void DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient);
+	static void DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason);
 
 public: // Utils.
 	void SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie);

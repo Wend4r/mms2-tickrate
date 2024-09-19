@@ -21,6 +21,8 @@
 
 #include <tickrate/provider.hpp>
 
+#include <frame.h>
+
 Tickrate::Provider::GameDataStorage::CHostFrame::CHostFrame()
 {
 	{
@@ -29,7 +31,7 @@ Tickrate::Provider::GameDataStorage::CHostFrame::CHostFrame()
 #ifdef _WIN32
 		aCallbacks.Insert(m_aGameConfig.GetSymbol("&s_pHostFrameSingleton->time_unbounded"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
 		{
-			m_pHostFrame = (CFrame *)(aAddress.CCast<decltype(ptrdiff_t)>() - offsetof(CFrame, absoluteframetime));
+			m_p = (CFrame *)(aAddress.CCast<ptrdiff_t>() - offsetof(CFrame, time_unbounded));
 		});
 #else
 		aCallbacks.Insert(m_aGameConfig.GetSymbol("GetHostFrame"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)

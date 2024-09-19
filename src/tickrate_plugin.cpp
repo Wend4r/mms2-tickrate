@@ -1071,7 +1071,10 @@ bool TickratePlugin::ParseLanguages(char *error, size_t maxlen)
 
 	if(!vecLangugesFiles.Count())
 	{
-		snprintf(error, maxlen, "No found languages by \"%s\" path", pszLanguagesFiles);
+		if(error && maxlen)
+		{
+			snprintf(error, maxlen, "No found languages by \"%s\" path", pszLanguagesFiles);
+		}
 
 		return false;
 	}
@@ -1174,7 +1177,10 @@ bool TickratePlugin::ParseTranslations(char *error, size_t maxlen)
 
 	if(!vecTranslationsFiles.Count())
 	{
-		snprintf(error, maxlen, "No found translations by \"%s\" path", pszTranslationsFiles);
+		if(error && maxlen)
+		{
+			snprintf(error, maxlen, "No found translations by \"%s\" path", pszTranslationsFiles);
+		}
 
 		return false;
 	}

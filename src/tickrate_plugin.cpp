@@ -568,8 +568,6 @@ int TickratePlugin::Set(int nNew)
 
 	CFrame *pHostFrame = GetHostFramePointer();
 
-	Logger::MessageFormat("pHostFrame = %p\n", pHostFrame);
-
 	if(pHostFrame)
 	{
 		ChangeHostFrame(pHostFrame, aData);

@@ -31,7 +31,7 @@ Tickrate::Provider::GameDataStorage::CTick::CTick()
 			m_pInterval = aAddress.RCast<decltype(m_pInterval)>();
 		});
 
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("(double *)&tick_interval"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&(double)tick_interval"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
 		{
 			m_pInterval2 = aAddress.RCast<decltype(m_pInterval2)>();
 		});

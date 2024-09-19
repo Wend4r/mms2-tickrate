@@ -20,7 +20,7 @@
 				}
 			},
 
-			"(double *)&tick_interval":
+			"&(double)tick_interval":
 			{
 				"signature": "CEngineServiceMgr::SleepAfterMainLoop",
 

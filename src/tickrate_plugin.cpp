@@ -1880,7 +1880,7 @@ void TickratePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination
 	nParamCount--;
 
 	// Parse incoming parameters.
-	if(nParamCount)
+	if(nParamCount > 0)
 	{
 		va_list aParams;
 

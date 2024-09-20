@@ -1162,14 +1162,54 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 
 bool TickratePlugin::UnregisterTick(char *error, size_t maxlen)
 {
-	float *pTickInterval = GetTickIntervalPointer();
-
-	if(!pTickInterval)
+	// A tick interval.
 	{
-		return true;
+		float *pTickInterval = GetTickIntervalPointer();
+
+		if(pTickInterval)
+		{
+			SourceHook::SetMemAccess(pTickInterval, sizeof(pTickInterval), m_iTickIntervalPageBits);
+		}
 	}
 
-	SourceHook::SetMemAccess(pTickInterval, sizeof(pTickInterval), m_iTickIntervalPageBits);
+	// A double tick interval.
+	{
+		double *pTickInterval2 = GetTickInterval2Pointer();
+
+		if(pTickInterval2)
+		{
+			SourceHook::SetMemAccess(pTickInterval2, sizeof(pTickInterval2), m_iTickInterval2PageBits);
+		}
+	}
+
+	// A default triple tick interval.
+	{
+		float *pTickInterval3Default = GetTickInterval3Pointer();
+
+		if(pTickInterval3Default)
+		{
+			SourceHook::SetMemAccess(pTickInterval3Default, sizeof(pTickInterval3Default), m_iTickInterval3DefaultPageBits);
+		}
+	}
+
+	// A triple tick interval.
+	{
+		float *pTickInterval3 = GetTickInterval3Pointer();
+
+		if(pTickInterval3)
+		{
+			SourceHook::SetMemAccess(pTickInterval3, sizeof(pTickInterval3), m_iTickInterval3PageBits);
+		}
+	}
+
+	{
+		float *pTicksPerSecond = GetTicksPerSecondPointer();
+
+		if(pTicksPerSecond)
+		{
+			SourceHook::SetMemAccess(pTicksPerSecond, sizeof(pTicksPerSecond), m_iTicksPerSecondPageBits);
+		}
+	}
 
 	return true;
 }

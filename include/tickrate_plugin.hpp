@@ -99,6 +99,8 @@ public: // ITickrate
 	IGameEventManager2 **GetGameEventManagerPointer() const override;
 	float *GetTickIntervalPointer() const override;
 	double *GetTickInterval2Pointer() const override;
+	float *GetTickInterval3DefaultPointer() const override;
+	float *GetTickInterval3Pointer() const override;
 	float *GetTicksPerSecondPointer() const override;
 
 	class CLanguage : public ITickrate::ILanguage
@@ -295,6 +297,8 @@ private: // Fields.
 
 	int m_iTickIntervalPageBits = 0;
 	int m_iTickInterval2PageBits = 0;
+	int m_iTickInterval3DefaultPageBits = 0;
+	int m_iTickInterval3PageBits = 0;
 	int m_iTicksPerSecondPageBits = 0;
 
 	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;

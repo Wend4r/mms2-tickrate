@@ -343,6 +343,16 @@ double *TickratePlugin::GetTickInterval2Pointer() const
 	return GetGameDataStorage().GetTick().GetInterval2Pointer();
 }
 
+float *TickratePlugin::GetTickInterval3DefaultPointer() const
+{
+	return GetGameDataStorage().GetTick().GetInterval3DefaultPointer();
+}
+
+float *TickratePlugin::GetTickInterval3Pointer() const
+{
+	return GetGameDataStorage().GetTick().GetInterval3Pointer();
+}
+
 float *TickratePlugin::GetTicksPerSecondPointer() const
 {
 	return GetGameDataStorage().GetTick().GetPerSecond();
@@ -589,6 +599,24 @@ int TickratePlugin::Set(int nNew)
 		return nOld;
 	}
 
+	float *pTickInterval3Default = GetTickInterval3DefaultPointer();
+
+	if(!pTickInterval3Default)
+	{
+		WarningFormat("%s: %s (#3, default)\n", __FUNCTION__, "Tick interval is not ready");
+
+		return nOld;
+	}
+
+	float *pTickInterval3 = GetTickInterval3Pointer();
+
+	if(!pTickInterval3)
+	{
+		WarningFormat("%s: %s (#3)\n", __FUNCTION__, "Tick interval is not ready");
+
+		return nOld;
+	}
+
 	float *pTicksPerSecond = GetTicksPerSecondPointer();
 
 	if(!pTicksPerSecond)
@@ -629,6 +657,8 @@ int TickratePlugin::Set(int nNew)
 
 	*pTickInterval = flInterval;
 	*pTickInterval2 = dblInterval;
+	*pTickInterval3Default = flInterval;
+	*pTickInterval3 = flInterval;
 	*pTicksPerSecond = flTicks;
 
 	return nOld;
@@ -1064,6 +1094,40 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 	if(SourceHook::GetPageBits(pTickInterval2, &m_iTickInterval2PageBits))
 	{
 		SourceHook::SetMemAccess(pTickInterval2, sizeof(pTickInterval2), m_iTickInterval2PageBits | SH_MEM_WRITE);
+	}
+
+	double *pTickInterval3Default = GetTickInterval2Pointer();
+
+	if(!pTickInterval3Default)
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to get a tick interval (#2)", maxlen);
+		}
+
+		return false;
+	}
+
+	if(SourceHook::GetPageBits(pTickInterval3Default, &m_iTickInterval3DefaultPageBits))
+	{
+		SourceHook::SetMemAccess(pTickInterval3Default, sizeof(pTickInterval3Default), m_iTickInterval3DefaultPageBits | SH_MEM_WRITE);
+	}
+
+	float *pTickInterval3 = GetTickInterval3Pointer();
+
+	if(!pTickInterval3)
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to get a tick interval (#2)", maxlen);
+		}
+
+		return false;
+	}
+
+	if(SourceHook::GetPageBits(pTickInterval3, &m_iTickInterval3PageBits))
+	{
+		SourceHook::SetMemAccess(pTickInterval3, sizeof(pTickInterval3), m_iTickInterval3PageBits | SH_MEM_WRITE);
 	}
 
 	float *pTicksPerSecond = GetTicksPerSecondPointer();

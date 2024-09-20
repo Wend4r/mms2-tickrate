@@ -88,6 +88,20 @@ public:
 	virtual double *GetTickInterval2Pointer() const = 0;
 
 	/**
+	 * @brief Gets a triple default tick interval.
+	 * 
+	 * @return              A pointer to a default tick interval.
+	 */
+	virtual float *GetTickInterval3DefaultPointer() const = 0;
+
+	/**
+	 * @brief Gets a triple tick interval.
+	 * 
+	 * @return              A pointer to a second tick interval.
+	 */
+	virtual float *GetTickInterval3Pointer() const = 0;
+
+	/**
 	 * @brief Gets a tick count per second.
 	 * 
 	 * @return              A pointer to a ticks.

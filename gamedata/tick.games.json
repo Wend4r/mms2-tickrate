@@ -35,6 +35,36 @@
 				}
 			},
 
+			"&tick_interval3_default":
+			{
+				"signature": "CLoopTypeClientServer::UnkSubClientSimulateTick2",
+
+				"win64":
+				{
+					"offset": 63
+				},
+
+				"linuxsteamrt64":
+				{
+					"offset": 30
+				}
+			},
+
+			"&tick_interval3":
+			{
+				"signature": "CLoopTypeClientServer::UnkSubClientSimulateTick2",
+
+				"win64":
+				{
+					"offset": 110
+				},
+
+				"linuxsteamrt64":
+				{
+					"offset": 72
+				}
+			},
+
 			"&ticks_per_second":
 			{
 				"signature": "CServerSideClient::ProcessMove",
@@ -72,6 +102,20 @@
 
 				"win64": "48 89 5C 24 ? 57 48 81 EC 80 00 00 00 48 8B BC 24",
 				"linuxsteamrt64": "55 66 0F 28 E1"
+			},
+
+			"CLoopTypeClientServer::UnkSubClientSimulateTick2":
+			{
+				"library": "engine2",
+
+				"used_strings":
+				[
+					"CQ disabled, re-syncing usercmd and simulation clock remainders\n",
+					"CQ enabled, using client-controlled JIT async send mode\n"
+				],
+
+				"win64": "40 53 48 83 EC 60 48 83 B9",
+				"linuxsteamrt64": "55 48 89 E5 41 55 41 54 53 48 89 FB 48 83 EC 18 F3 0F 10 BF"
 			},
 
 			"CServerSideClient::ProcessMove":

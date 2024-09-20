@@ -174,6 +174,8 @@ namespace Tickrate
 			public:
 				float *GetIntervalPointer() const;
 				double *GetInterval2Pointer() const;
+				float *GetInterval3DefaultPointer() const;
+				float *GetInterval3Pointer() const;
 
 				float *GetPerSecond() const;
 
@@ -184,6 +186,8 @@ namespace Tickrate
 			private: // Addresses.
 				float *m_pInterval = nullptr;
 				double *m_pInterval2 = nullptr;
+				float *m_pInterval3Default = nullptr;
+				float *m_pInterval3 = nullptr;
 
 				float *m_pPerSecond = nullptr;
 			}; // CTick

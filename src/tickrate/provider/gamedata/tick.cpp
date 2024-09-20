@@ -36,10 +36,21 @@ Tickrate::Provider::GameDataStorage::CTick::CTick()
 			m_pInterval2 = aAddress.RCast<decltype(m_pInterval2)>();
 		});
 
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&tick_interval3_default"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
+		{
+			m_pInterval3Default = aAddress.RCast<decltype(m_pInterval3Default)>();
+		});
+
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&tick_interval3"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
+		{
+			m_pInterval3 = aAddress.RCast<decltype(m_pInterval3)>();
+		});
+
 		aCallbacks.Insert(m_aGameConfig.GetSymbol("&ticks_per_second"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
 		{
 			m_pPerSecond = aAddress.RCast<decltype(m_pPerSecond)>();
 		});
+
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
 	}
 }
@@ -64,6 +75,16 @@ float *Tickrate::Provider::GameDataStorage::CTick::GetIntervalPointer() const
 double *Tickrate::Provider::GameDataStorage::CTick::GetInterval2Pointer() const
 {
 	return m_pInterval2;
+}
+
+float *Tickrate::Provider::GameDataStorage::CTick::GetInterval3DefaultPointer() const
+{
+	return m_pInterval3Default;
+}
+
+float *Tickrate::Provider::GameDataStorage::CTick::GetInterval3Pointer() const
+{
+	return m_pInterval3;
 }
 
 float *Tickrate::Provider::GameDataStorage::CTick::GetPerSecond() const

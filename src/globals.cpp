@@ -27,6 +27,7 @@
 #include <ISmmPlugin.h>
 
 #include <entity2/entitysystem.h>
+#include <frame.h>
 #include <igameeventsystem.h>
 #include <igamesystemfactory.h>
 #include <iserver.h>
@@ -38,7 +39,7 @@ CEntitySystem *g_pEntitySystem = NULL;
 CGameEntitySystem *g_pGameEntitySystem = NULL;
 CBaseGameSystemFactory **CBaseGameSystemFactory::sm_pFirst = NULL;
 IGameEventManager2 *g_pGameEventManager = NULL;
-float *g_pTickInterval = NULL;
+CFrame *g_pHostFrame = NULL;
 
 bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error, size_t maxlen)
 {
@@ -98,16 +99,16 @@ bool UnregisterGameEventManager()
 	return true;
 }
 
-bool RegisterTickInterval(float *pTickInterval)
+bool RegisterHostFrame(CFrame *pHostFrame)
 {
-	g_pTickInterval = pTickInterval;
+	g_pHostFrame = pHostFrame;
 
 	return true;
 }
 
-bool UnregisterTickInterval()
+bool UnregisterHostFrame()
 {
-	g_pTickInterval = NULL;
+	g_pHostFrame = NULL;
 
 	return true;
 }

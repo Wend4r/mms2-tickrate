@@ -48,6 +48,7 @@ class CGameEntitySystem;
 class CBaseGameSystemFactory;
 class CGameEventManager;
 class IGameEventManager2;
+struct CFrame;
 class CGlobalVars;
 
 #	include <interfaces/interfaces.h>
@@ -76,8 +77,8 @@ extern bool UnregisterFirstGameSystem();
 extern bool RegisterGameEventManager(IGameEventManager2 *pGameEventManager);
 extern bool UnregisterGameEventManager();
 
-extern bool RegisterTickInterval(float *pTickInterval);
-extern bool UnregisterTickInterval();
+extern bool RegisterHostFrame(CFrame *pHostFrame);
+extern bool UnregisterHostFrame();
 
 extern void DumpGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);
 extern void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput);

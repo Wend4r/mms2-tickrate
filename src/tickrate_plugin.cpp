@@ -1147,7 +1147,7 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 		SourceHook::SetMemAccess(pTicksPerSecond, sizeof(pTicksPerSecond), m_iTicksPerSecondPageBits | SH_MEM_WRITE);
 	}
 
-	if(!RegisterTickInterval(pTickInterval))
+	if(!RegisterHostFrame(GetGameDataStorage().GetHostFrame().GetPointer()))
 	{
 		if(error && maxlen)
 		{
@@ -1209,6 +1209,16 @@ bool TickratePlugin::UnregisterTick(char *error, size_t maxlen)
 		{
 			SourceHook::SetMemAccess(pTicksPerSecond, sizeof(pTicksPerSecond), m_iTicksPerSecondPageBits);
 		}
+	}
+
+	if(!UnregisterHostFrame())
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to unregister a host frame", maxlen);
+		}
+
+		return false;
 	}
 
 	return true;

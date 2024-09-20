@@ -1967,6 +1967,8 @@ void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const G
 
 void TickratePlugin::OnFillServerInfo(CNetworkGameServerBase *pNetServer, CSVCMsg_ServerInfo_t *pServerInfo)
 {
+	auto *pMessage = pServerInfo->ToPB<CSVCMsg_ServerInfo>();
+
 	if(IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat, 
@@ -1977,17 +1979,19 @@ void TickratePlugin::OnFillServerInfo(CNetworkGameServerBase *pNetServer, CSVCMs
 #ifndef _WIN32
 		try
 		{
-			sMessage.Format("Receive %s message:\n", pServerInfo->GetNetMessage()->GetUnscopedName());
-			DumpProtobufMessage(aConcat, sMessage, *pServerInfo->ToPB<CSVCMsg_ServerInfo>());
+			sMessage.Format("Fill %s message:\n", pServerInfo->GetNetMessage()->GetUnscopedName());
+			DumpProtobufMessage(aConcat, sMessage, *pMessage);
 		}
 		catch(const std::exception &aError)
 		{
-			sMessage.Format("Receive a proto message: %s\n", aError.what());
+			sMessage.Format("Fill a proto message: %s\n", aError.what());
 		}
 #endif
 
 		Logger::Detailed(sMessage);
 	}
+
+	pMessage->set_tick_interval(1.0f / (float)Get());
 }
 
 void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)

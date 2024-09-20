@@ -581,85 +581,143 @@ int TickratePlugin::Set(int nNew)
 {
 	int nOld = Get();
 
-	float *pTickInterval = GetTickIntervalPointer();
-
-	if(!pTickInterval)
-	{
-		WarningFormat("%s: %s\n", __FUNCTION__, "Tick interval is not ready");
-
-		return nOld;
-	}
-
-	double *pTickInterval2 = GetTickInterval2Pointer();
-
-	if(!pTickInterval2)
-	{
-		WarningFormat("%s: %s (#2)\n", __FUNCTION__, "Tick interval is not ready");
-
-		return nOld;
-	}
-
-	float *pTickInterval3Default = GetTickInterval3DefaultPointer();
-
-	if(!pTickInterval3Default)
-	{
-		WarningFormat("%s: %s (#3, default)\n", __FUNCTION__, "Tick interval is not ready");
-
-		return nOld;
-	}
-
-	float *pTickInterval3 = GetTickInterval3Pointer();
-
-	if(!pTickInterval3)
-	{
-		WarningFormat("%s: %s (#3)\n", __FUNCTION__, "Tick interval is not ready");
-
-		return nOld;
-	}
-
-	float *pTicksPerSecond = GetTicksPerSecondPointer();
-
-	if(!pTicksPerSecond)
-	{
-		WarningFormat("%s: %s\n", __FUNCTION__, "Ticks per second is not ready");
-
-		return nOld;
-	}
-
 	const CChangedData aData(nOld, nNew);
 
-	CFrame *pHostFrame = GetHostFramePointer();
-
-	if(pHostFrame)
+	// Change tick globals.
 	{
-		ChangeHostFrame(pHostFrame, aData);
+		const auto &aConcat = s_aEmbedConcat;
+
+		CBufferStringGrowable<1024> sMessage;
+
+		sMessage.Format("Old tick intervals:\n");
+
+		// Tick invervals.
+		{
+			const struct
+			{
+				const char *pszName;
+				float *pflValue;
+			} aTickIntervals[] =
+			{
+				{
+					"Tick interval",
+					GetTickIntervalPointer()
+				},
+				{
+					"Tick interval (#3, default)",
+					GetTickInterval3DefaultPointer()
+				},
+				{
+					"Tick interval (#3)",
+					GetTickInterval3Pointer()
+				},
+			};
+
+			float flInterval = aData.GetNewInterval();
+
+			for(const auto &aInterval : aTickIntervals)
+			{
+				if(aInterval.pflValue)
+				{
+					aConcat.AppendToBuffer(sMessage, aInterval.pszName, *aInterval.pflValue);
+					*aInterval.pflValue = flInterval;
+				}
+				else
+				{
+					WarningFormat("%s is not ready\n", aInterval.pszName);
+				}
+			}
+		}
+
+		// Double tick invervals.
+		{
+			const struct
+			{
+				const char *pszName;
+				double *pdblValue;
+			} aDoubleTickIntervals[] =
+			{
+				{
+					"Tick interval (#2)",
+					GetTickInterval2Pointer()
+				},
+			};
+
+			double dblInterval = aData.GetNewInterval2();
+
+			for(const auto &aInterval : aDoubleTickIntervals)
+			{
+				if(aInterval.pdblValue)
+				{
+					aConcat.AppendToBuffer(sMessage, aInterval.pszName, *aInterval.pdblValue);
+					*aInterval.pdblValue = dblInterval;
+				}
+				else
+				{
+					WarningFormat("%s is not ready\n", aInterval.pszName);
+				}
+			}
+		}
+
+		// Ticks per second.
+		{
+			const struct
+			{
+				const char *pszName;
+				float *pflValue;
+			} aTicksPerSecond[] =
+			{
+				{
+					"Ticks per second",
+					GetTicksPerSecondPointer()
+				},
+			};
+
+			float flTicks = (float)aData.GetNew();
+
+			for(const auto &aSecond : aTicksPerSecond)
+			{
+				if(aSecond.pflValue)
+				{
+					aConcat.AppendToBuffer(sMessage, aSecond.pszName, *aSecond.pflValue);
+					*aSecond.pflValue = flTicks;
+				}
+				else
+				{
+					WarningFormat("%s is not ready\n", aSecond.pszName);
+				}
+			}
+		}
+
+		Logger::Message(sMessage);
 	}
 
-	INetworkGameServer *pServer = g_pNetworkServerService->GetIGameServer();
-
-	if(pServer)
+	// A host frame
 	{
-		pServer->SetServerTick((int)(pServer->GetServerTick() * aData.GetMultiple()));
+		CFrame *pHostFrame = GetHostFramePointer();
 
-		auto *pGlobals = pServer->GetGlobals();
-
-		if(pGlobals)
+		if(pHostFrame)
 		{
-			ChangeGlobals(pGlobals, aData);
+			ChangeHostFrame(pHostFrame, aData);
 		}
 	}
 
-	float flTicks = (float)aData.GetNew();
+	// Global vars.
+	{
+		INetworkGameServer *pServer = g_pNetworkServerService->GetIGameServer();
 
-	float flInterval = aData.GetNewInterval();
+		if(pServer)
+		{
+			pServer->SetServerTick((int)(pServer->GetServerTick() * aData.GetMultiple()));
 
-	double dblInterval = aData.GetNewInterval2();
+			auto *pGlobals = pServer->GetGlobals();
 
-	*pTickInterval = flInterval;
-	*pTickInterval2 = dblInterval;
-	*pTickInterval3Default = flInterval;
-	*pTickInterval3 = flInterval;
-	*pTicksPerSecond = flTicks;
+			if(pGlobals)
+			{
+				ChangeGlobals(pGlobals, aData);
+			}
+		}
+	}
 
 	return nOld;
 }

@@ -343,6 +343,11 @@ double *TickratePlugin::GetTickInterval2Pointer() const
 	return GetGameDataStorage().GetTick().GetInterval2Pointer();
 }
 
+float *TickratePlugin::GetTicksPerSecondPointer() const
+{
+	return GetGameDataStorage().GetTick().GetPerSecond();
+}
+
 float *TickratePlugin::GetServerTickIntervalPointer() const
 {
 	return GetGameDataStorage().GetTick().GetServerIntervalPointer();
@@ -589,6 +594,15 @@ int TickratePlugin::Set(int nNew)
 		return nOld;
 	}
 
+	float *pTicksPerSecond = GetTicksPerSecondPointer();
+
+	if(!pTicksPerSecond)
+	{
+		WarningFormat("%s: %s\n", __FUNCTION__, "Ticks per second is not ready");
+
+		return nOld;
+	}
+
 	float *pServerTickInterval = GetServerTickIntervalPointer();
 
 	if(!pServerTickInterval)
@@ -621,12 +635,15 @@ int TickratePlugin::Set(int nNew)
 		}
 	}
 
+	float flTicks = (float)aData.GetNew();
+
 	float flInterval = aData.GetNewInterval();
 
 	double dblInterval = aData.GetNewInterval2();
 
 	*pTickInterval = flInterval;
 	*pTickInterval2 = dblInterval;
+	*pTicksPerSecond = flTicks;
 	*pServerTickInterval = flInterval;
 
 	return nOld;
@@ -1062,6 +1079,23 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 	if(SourceHook::GetPageBits(pTickInterval2, &m_iTickInterval2PageBits))
 	{
 		SourceHook::SetMemAccess(pTickInterval2, sizeof(pTickInterval2), m_iTickInterval2PageBits | SH_MEM_WRITE);
+	}
+
+	float *pTicksPerSecond = GetTicksPerSecondPointer();
+
+	if(!pTicksPerSecond)
+	{
+		if(error && maxlen)
+		{
+			strncpy(error, "Failed to get ticks per second", maxlen);
+		}
+
+		return false;
+	}
+
+	if(SourceHook::GetPageBits(pTicksPerSecond, &m_iTicksPerSecondPageBits))
+	{
+		SourceHook::SetMemAccess(pTicksPerSecond, sizeof(pTicksPerSecond), m_iTicksPerSecondPageBits | SH_MEM_WRITE);
 	}
 
 	float *pServerTickInterval = GetServerTickIntervalPointer();

@@ -88,6 +88,13 @@ public:
 	virtual double *GetTickInterval2Pointer() const = 0;
 
 	/**
+	 * @brief Gets a tick count per second.
+	 * 
+	 * @return              A pointer to a ticks.
+	 */
+	virtual float *GetTicksPerSecondPointer() const = 0;
+
+	/**
 	 * @brief Gets a server tick interval.
 	 * 
 	 * @return              A pointer to a server tick interval.

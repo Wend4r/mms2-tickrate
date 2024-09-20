@@ -35,6 +35,21 @@
 				}
 			},
 
+			"&ticks_per_second":
+			{
+				"signature": "CServerSideClient::ProcessMove",
+
+				"win64":
+				{
+					"read_offs32": 268
+				},
+
+				"linuxsteamrt64":
+				{
+					"read_offs32": 107
+				}
+			},
+
 			"&server_tick_interval":
 			{
 				"signature": "CServerLogHTTPDispatcher::PreClientUpdate",
@@ -72,6 +87,14 @@
 
 				"win64": "48 89 5C 24 ? 57 48 81 EC 80 00 00 00 48 8B BC 24",
 				"linuxsteamrt64": "55 66 0F 28 E1"
+			},
+
+			"CServerSideClient::ProcessMove":
+			{
+				"library": "engine2",
+
+				"win64": "40 55 57 48 81 EC 88 00 00 00",
+				"linuxsteamrt64": "55 48 89 E5 41 57 41 56 49 89 FE 41 55 41 54 49 89 F4 53 48 83 EC 28"
 			},
 
 			"CServerLogHTTPDispatcher::PreClientUpdate":

@@ -761,6 +761,8 @@ int TickratePlugin::ChangeInternal(int nNew)
 
 					SendTextMessage(&aFilter, HUD_PRINTTALK, 1, aPhrase.m_pContent->Format(*aPhrase.m_pFormat, 2, nOld, nNew).Get());
 				}
+
+				g_pEngineServer->SetClientUpdateRate(aPlayerSlot, (float)(nNew));
 			}
 		}
 	}
@@ -1978,9 +1980,13 @@ void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServer
 		Logger::Detailed(sMessage);
 	}
 
+	auto aPlayerSlot = pClient->GetPlayerSlot();
+
+	g_pEngineServer->SetClientUpdateRate(aPlayerSlot, (float)(Get()));
+
 	// Get "cl_language" cvar value from a client.
 	{
-		CSingleRecipientFilter aFilter(pClient->GetPlayerSlot());
+		CSingleRecipientFilter aFilter(aPlayerSlot);
 
 		const char *pszCvarName = TICKRATE_CLIENT_CVAR_NAME_LANGUAGE;
 

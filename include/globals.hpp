@@ -64,7 +64,7 @@ extern IGameEventSystem *g_pGameEventSystem;
 extern CEntitySystem *g_pEntitySystem;
 extern CGameEntitySystem *g_pGameEntitySystem;
 extern IGameEventManager2 *g_pGameEventManager;
-extern float *g_pTickInterval;
+extern CFrame *g_pHostFrame;
 
 extern bool InitGlobals(SourceMM::ISmmAPI *ismm, char *error = nullptr, size_t maxlen = 0);
 

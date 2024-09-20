@@ -133,7 +133,7 @@ void DumpRegisterGlobals(const ConcatLineString &aConcat, CBufferString &sOutput
 	GLOBALS_APPEND_VARIABLE(g_pGameEntitySystem);
 	GLOBALS_APPEND_VARIABLE(CBaseGameSystemFactory::sm_pFirst);
 	GLOBALS_APPEND_VARIABLE(g_pGameEventManager);
-	GLOBALS_APPEND_VARIABLE(g_pTickInterval);
+	GLOBALS_APPEND_VARIABLE(g_pHostFrame);
 }
 
 bool DestoryGlobals(char *error, size_t maxlen)

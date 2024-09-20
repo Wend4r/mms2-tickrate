@@ -78,6 +78,7 @@ struct ConcatLineString : ConcatLineStringBase
 	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey, bool bValue) const;
 	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey, int iValue) const;
 	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey, float flValue) const;
+	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey, double dblValue) const;
 	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey, const char *pszValue) const;
 	const char *AppendToBuffer(CBufferString &sMessage, const char *pszKey, std::vector<const char *> vecValues) const;
 	const char *AppendBytesToBuffer(CBufferString &sMessage, const char *pszKey, const byte *pData, size_t nLength) const;

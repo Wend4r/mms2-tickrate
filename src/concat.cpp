@@ -57,6 +57,15 @@ const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char
 	return AppendToBuffer(sMessage, pszKey, sValue);
 }
 
+const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char *pszKey, double dblValue) const
+{
+	char sValue[32];
+
+	V_snprintf(sValue, sizeof(sValue), "%lf", dblValue);
+
+	return AppendToBuffer(sMessage, pszKey, sValue);
+}
+
 const char *ConcatLineString::AppendToBuffer(CBufferString &sMessage, const char *pszKey, const char *pszValue) const
 {
 	const auto vecConcat = Base::GetKeyValueConcat(pszKey, pszValue);

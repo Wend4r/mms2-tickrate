@@ -743,7 +743,7 @@ int TickratePlugin::ChangeInternal(int nNew)
 
 	if(pNetServer)
 	{
-		for(const auto &pClient : pNetServer->m_Clients)
+		for(auto &pClient : pNetServer->m_Clients)
 		{
 			if(pClient->IsConnected() && !pClient->IsFakeClient())
 			{
@@ -764,7 +764,7 @@ int TickratePlugin::ChangeInternal(int nNew)
 					SendTextMessage(&aFilter, HUD_PRINTTALK, 1, aPhrase.m_pContent->Format(*aPhrase.m_pFormat, 2, nOld, nNew).Get());
 				}
 
-				g_pEngineServer->SetClientUpdateRate(aPlayerSlot, (float)(nNew));
+				pClient->SetUpdateRate((float)(Get()));
 			}
 		}
 	}
@@ -2023,7 +2023,7 @@ void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServer
 
 	auto aPlayerSlot = pClient->GetPlayerSlot();
 
-	g_pEngineServer->SetClientUpdateRate(aPlayerSlot, (float)(Get()));
+	pClient->SetUpdateRate((float)(Get()));
 
 	// Get "cl_language" cvar value from a client.
 	{

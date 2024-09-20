@@ -46,6 +46,7 @@
 
 SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandHandle, const CCommandContext &, const CCommand &);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
+SH_DECL_HOOK1_void(CNetworkGameServerBase, FillServerInfo, SH_NOATTRIB, 0, CSVCMsg_ServerInfo_t *);
 SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, int, CCLCMsg_SplitPlayerConnect_t *, const char *, const byte *, int, bool);
 SH_DECL_HOOK1(CServerSideClientBase, ProcessRespondCvarValue, SH_NOATTRIB, 0, bool, const CCLCMsg_RespondCvarValue_t &);
 SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
@@ -216,6 +217,7 @@ bool TickratePlugin::Unload(char *error, size_t maxlen)
 		if(pNetServer)
 		{
 			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &TickratePlugin::OnConnectClientHook, true);
+			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, FillServerInfo, pNetServer, this, &TickratePlugin::OnFillServerInfoHook, true);
 		}
 	}
 
@@ -1639,6 +1641,15 @@ void TickratePlugin::OnStartupServerHook(const GameSessionConfiguration_t &confi
 	RETURN_META(MRES_IGNORED);
 }
 
+void TickratePlugin::OnFillServerInfoHook(CSVCMsg_ServerInfo_t *pServerInfo)
+{
+	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
+
+	OnFillServerInfo(pNetServer, pServerInfo);
+
+	RETURN_META(MRES_IGNORED);
+}
+
 CServerSideClientBase *TickratePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, 
                                                          const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
@@ -1901,6 +1912,7 @@ void TickratePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination
 
 void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
 {
+	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, FillServerInfo, pNetServer, this, &TickratePlugin::OnFillServerInfoHook, true);
 	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &TickratePlugin::OnConnectClientHook, true);
 
 	// Initialize & hook game evetns.
@@ -1938,8 +1950,8 @@ void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const G
 		{
 			sMessage.Format("Receive a proto message: %s\n", aError.what());
 		}
-
 #endif
+
 		sMessage.AppendFormat("Register globals:\n");
 		DumpRegisterGlobals(aConcat, sMessage);
 
@@ -1948,6 +1960,31 @@ void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const G
 			sMessage.AppendFormat("Global vars:\n");
 			DumpGlobalVars(aConcat, aConcat2, sMessage, pGlobals);
 		}
+
+		Logger::Detailed(sMessage);
+	}
+}
+
+void TickratePlugin::OnFillServerInfo(CNetworkGameServerBase *pNetServer, CSVCMsg_ServerInfo_t *pServerInfo)
+{
+	if(IsChannelEnabled(LS_DETAILED))
+	{
+		const auto &aConcat = s_aEmbedConcat, 
+		           &aConcat2 = s_aEmbed2Concat;
+
+		CBufferStringGrowable<1024> sMessage;
+
+#ifndef _WIN32
+		try
+		{
+			sMessage.Format("Receive %s message:\n", pServerInfo->GetNetMessage()->GetUnscopedName());
+			DumpProtobufMessage(aConcat, sMessage, *pServerInfo->ToPB<CSVCMsg_ServerInfo>());
+		}
+		catch(const std::exception &aError)
+		{
+			sMessage.Format("Receive a proto message: %s\n", aError.what());
+		}
+#endif
 
 		Logger::Detailed(sMessage);
 	}

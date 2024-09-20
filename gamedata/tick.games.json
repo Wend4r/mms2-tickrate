@@ -48,21 +48,6 @@
 				{
 					"read_offs32": 107
 				}
-			},
-
-			"&server_tick_interval":
-			{
-				"signature": "CServerLogHTTPDispatcher::PreClientUpdate",
-
-				"win64":
-				{
-					"read_offs32": 724
-				},
-
-				"linuxsteamrt64":
-				{
-					"read_offs32": 325
-				}
 			}
 		},
 
@@ -95,19 +80,6 @@
 
 				"win64": "40 55 57 48 81 EC 88 00 00 00",
 				"linuxsteamrt64": "55 48 89 E5 41 57 41 56 49 89 FE 41 55 41 54 49 89 F4 53 48 83 EC 28"
-			},
-
-			"CServerLogHTTPDispatcher::PreClientUpdate":
-			{
-				"library": "server",
-
-				"used_strings":
-				[
-					"Server log http listener registered, but logging is not turned on for this server! Start recording the log before registering any http destinations\n"
-				],
-
-				"win64": "40 53 57 48 81 EC 98 00 00 00 48 8B D9",
-				"linuxsteamrt64": "55 BE FF FF FF FF 48 89 E5 41 57 41 56 41 55 41 54 53 48 89 FB 48 8D 3D ? ? ? ? 48 83 EC 38"
 			}
 		}
 	}

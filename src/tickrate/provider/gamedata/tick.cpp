@@ -40,12 +40,6 @@ Tickrate::Provider::GameDataStorage::CTick::CTick()
 		{
 			m_pPerSecond = aAddress.RCast<decltype(m_pPerSecond)>();
 		});
-
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("&server_tick_interval"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
-		{
-			m_pServerInterval = aAddress.RCast<decltype(m_pServerInterval)>();
-		});
-
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
 	}
 }
@@ -60,7 +54,6 @@ void Tickrate::Provider::GameDataStorage::CTick::Reset()
 	m_pInterval = nullptr;
 	m_pInterval2 = nullptr;
 	m_pPerSecond = nullptr;
-	m_pServerInterval = nullptr;
 }
 
 float *Tickrate::Provider::GameDataStorage::CTick::GetIntervalPointer() const
@@ -76,9 +69,4 @@ double *Tickrate::Provider::GameDataStorage::CTick::GetInterval2Pointer() const
 float *Tickrate::Provider::GameDataStorage::CTick::GetPerSecond() const
 {
 	return m_pPerSecond;
-}
-
-float *Tickrate::Provider::GameDataStorage::CTick::GetServerIntervalPointer() const
-{
-	return m_pServerInterval;
 }

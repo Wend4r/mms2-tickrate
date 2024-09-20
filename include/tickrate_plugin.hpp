@@ -100,7 +100,6 @@ public: // ITickrate
 	float *GetTickIntervalPointer() const override;
 	double *GetTickInterval2Pointer() const override;
 	float *GetTicksPerSecondPointer() const override;
-	float *GetServerTickIntervalPointer() const override;
 
 	class CLanguage : public ITickrate::ILanguage
 	{
@@ -297,7 +296,6 @@ private: // Fields.
 	int m_iTickIntervalPageBits = 0;
 	int m_iTickInterval2PageBits = 0;
 	int m_iTicksPerSecondPageBits = 0;
-	int m_iServerTickIntervalPageBits = 0;
 
 	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;
 	INetworkMessageInternal *m_pSayText2Message = NULL;

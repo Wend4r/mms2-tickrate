@@ -348,11 +348,6 @@ float *TickratePlugin::GetTicksPerSecondPointer() const
 	return GetGameDataStorage().GetTick().GetPerSecond();
 }
 
-float *TickratePlugin::GetServerTickIntervalPointer() const
-{
-	return GetGameDataStorage().GetTick().GetServerIntervalPointer();
-}
-
 TickratePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
  :  m_sName(sInitName), 
     m_sCountryCode(pszInitCountryCode)
@@ -603,15 +598,6 @@ int TickratePlugin::Set(int nNew)
 		return nOld;
 	}
 
-	float *pServerTickInterval = GetServerTickIntervalPointer();
-
-	if(!pServerTickInterval)
-	{
-		WarningFormat("%s: %s (#3)\n", __FUNCTION__, "Tick interval is not ready");
-
-		return nOld;
-	}
-
 	const CChangedData aData(nOld, nNew);
 
 	CFrame *pHostFrame = GetHostFramePointer();
@@ -644,7 +630,6 @@ int TickratePlugin::Set(int nNew)
 	*pTickInterval = flInterval;
 	*pTickInterval2 = dblInterval;
 	*pTicksPerSecond = flTicks;
-	*pServerTickInterval = flInterval;
 
 	return nOld;
 }
@@ -1096,23 +1081,6 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 	if(SourceHook::GetPageBits(pTicksPerSecond, &m_iTicksPerSecondPageBits))
 	{
 		SourceHook::SetMemAccess(pTicksPerSecond, sizeof(pTicksPerSecond), m_iTicksPerSecondPageBits | SH_MEM_WRITE);
-	}
-
-	float *pServerTickInterval = GetServerTickIntervalPointer();
-
-	if(!pServerTickInterval)
-	{
-		if(error && maxlen)
-		{
-			strncpy(error, "Failed to get a server tick interval", maxlen);
-		}
-
-		return false;
-	}
-
-	if(SourceHook::GetPageBits(pServerTickInterval, &m_iServerTickIntervalPageBits))
-	{
-		SourceHook::SetMemAccess(pServerTickInterval, sizeof(pServerTickInterval), m_iServerTickIntervalPageBits | SH_MEM_WRITE);
 	}
 
 	if(!RegisterTickInterval(pTickInterval))

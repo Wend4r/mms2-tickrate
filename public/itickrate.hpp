@@ -94,13 +94,6 @@ public:
 	 */
 	virtual float *GetTicksPerSecondPointer() const = 0;
 
-	/**
-	 * @brief Gets a server tick interval.
-	 * 
-	 * @return              A pointer to a server tick interval.
-	 */
-	virtual float *GetServerTickIntervalPointer() const = 0;
-
 public: // Language ones.
 	/**
 	 * @brief A player data language interface.

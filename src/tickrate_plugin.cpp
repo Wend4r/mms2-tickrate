@@ -304,7 +304,7 @@ void *TickratePlugin::OnMetamodQuery(const char *iface, int *ret)
 			*ret = META_IFACE_OK;
 		}
 
-		return this;
+		return static_cast<ITickrate *>(this);
 	}
 
 	if(ret)

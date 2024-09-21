@@ -605,10 +605,10 @@ int TickratePlugin::Set(int nNew)
 					"Tick interval",
 					GetTickIntervalPointer()
 				},
-				{
-					"Tick interval (#3, default)",
-					GetTickInterval3DefaultPointer()
-				},
+				// {
+				// 	"Tick interval (#3, default)",
+				// 	GetTickInterval3DefaultPointer()
+				// },
 				{
 					"Tick interval (#3)",
 					GetTickInterval3Pointer()

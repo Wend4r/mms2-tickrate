@@ -64,6 +64,8 @@ void Tickrate::Provider::GameDataStorage::CTick::Reset()
 {
 	m_pInterval = nullptr;
 	m_pInterval2 = nullptr;
+	m_pInterval3Default = nullptr;
+	m_pInterval3 = nullptr;
 	m_pPerSecond = nullptr;
 }
 

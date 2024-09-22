@@ -737,7 +737,14 @@ int TickratePlugin::ChangeInternal(int nNew)
 {
 	int nOld = Set(nNew);
 
-	Logger::MessageFormat("The tickrate are changed from %d to %d\n", nOld, nNew);
+	if(nOld == nNew)
+	{
+		Logger::MessageFormat("%s to %d\n", "The tickrate are changed", nOld, nNew);
+	}
+	else
+	{
+		Logger::MessageFormat("%s from %d to %d\n", "The tickrate are changed", nOld, nNew);
+	}
 
 	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 

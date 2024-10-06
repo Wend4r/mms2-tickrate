@@ -11,12 +11,12 @@
 
 				"win64":
 				{
-					"read_offs32": 11
+					"read_offs32": 53
 				},
 
 				"linuxsteamrt64":
 				{
-					"read_offs32": 30
+					"read_offs32": 72
 				}
 			}
 		},
@@ -35,8 +35,8 @@
 					"IGameSystem::PostInit( %-80s ) %8.3f msec"
 				],
 
-				"win64": "40 53 56 57 48 83 EC 50 48 8B 1D ? ? ? ? 48 85 DB 0F 84",
-				"linuxsteamrt64": "55 48 89 E5 41 57 41 56 41 55 41 BD ? ? ? ? 41 54 4C 8D 65 C0 53"
+				"win64": "40 53 56 57 41 55 48 83 EC 68",
+				"linuxsteamrt64": "55 48 8D 05 ? ? ? ? 48 89 E5 41 57 41 56 41 55 41 BD 00 00 00 80"
 			}
 		}
 	}

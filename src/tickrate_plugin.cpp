@@ -739,7 +739,7 @@ int TickratePlugin::ChangeInternal(int nNew)
 
 	if(nOld == nNew)
 	{
-		Logger::MessageFormat("%s to %d\n", "The tickrate are changed", nOld, nNew);
+		Logger::MessageFormat("%s to %d\n", "The tickrate are changed", nNew);
 	}
 	else
 	{

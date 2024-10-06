@@ -62,6 +62,8 @@
 
 #	define TICKRATE_EXAMPLE_CHAT_COMMAND "example"
 
+#	define TICKRATE_CLIENT_CVAR_NAME_CLOCK_CORRECTION "cl_clock_correction"
+
 #	define TICKRATE_CLIENT_CVAR_NAME_LANGUAGE "cl_language"
 
 class CBasePlayerController;
@@ -244,6 +246,7 @@ private: // Commands.
 
 private: // ConVars. See the constructor
 	ConVar<int> m_aSVTickrateConVar;
+	ConVar<bool> m_aSVToClientClockCorrection;
 	ConVar<bool> m_aEnableFrameDetailsConVar;
 
 public: // SourceHooks.
@@ -267,6 +270,13 @@ public: // Dump ones.
 	static void DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason);
 
 public: // Utils.
+	struct CVar_t
+	{
+		const char *m_pszName;
+		const char *m_pszValue;
+	};
+
+	void SendSetConVar(IRecipientFilter *pFilter, const CUtlVector<CVar_t> &vecCVars);
 	void SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie);
 	void SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1 = "", const char *pszParam2 = "", const char *pszParam3 = "", const char *pszParam4 = "");
 	void SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...);
@@ -303,6 +313,7 @@ private: // Fields.
 	int m_iTickInterval3PageBits = 0;
 	int m_iTicksPerSecondPageBits = 0;
 
+	INetworkMessageInternal *m_pSetConVarMessage = NULL;
 	INetworkMessageInternal *m_pGetCvarValueMessage = NULL;
 	INetworkMessageInternal *m_pSayText2Message = NULL;
 	INetworkMessageInternal *m_pTextMsgMessage = NULL;

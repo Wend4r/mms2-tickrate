@@ -80,7 +80,7 @@ TickratePlugin::TickratePlugin()
  :  Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aTickratePlugin.GetLogTag());
-    }, 0, LV_DEFAULT, TICKRATE_LOGGINING_COLOR),
+    }, 0, LV_DETAILED, TICKRATE_LOGGINING_COLOR),
     m_aSVTickrateConVar("sv_tickrate", FCVAR_RELEASE | FCVAR_GAMEDLL, "Server tickrate", TICKRATE_DEFAULT, [](ConVar<int> *pConVar, const CSplitScreenSlot aSlot, const int *pNewValue, const int *pOldValue)
     {
     	if(*pNewValue != *pOldValue)
@@ -88,6 +88,7 @@ TickratePlugin::TickratePlugin()
     		s_aTickratePlugin.ChangeInternal(*pNewValue);
     	}
     }),
+    m_aSVToClientClockCorrection("sv_to_cl_clock_correction", FCVAR_RELEASE | FCVAR_GAMEDLL, "Send it value of \"" TICKRATE_CLIENT_CVAR_NAME_CLOCK_CORRECTION "\" to client", false, true, false, true, true),
     m_aEnableFrameDetailsConVar("mm_" META_PLUGIN_PREFIX "_enable_frame_details", FCVAR_RELEASE | FCVAR_GAMEDLL, "Enable detail messages of frames", false, true, false, true, true), 
     m_mapConVarCookies(DefLessFunc(const CUtlSymbolLarge)),
     m_mapLanguages(DefLessFunc(const CUtlSymbolLarge))
@@ -1318,6 +1319,10 @@ bool TickratePlugin::RegisterNetMessages(char *error, size_t maxlen)
 	} aMessageInitializers[] =
 	{
 		{
+			"CNETMsg_SetConVar",
+			&m_pSetConVarMessage,
+		},
+		{
 			"CSVCMsg_GetCvarValue",
 			&m_pGetCvarValueMessage,
 		},
@@ -1795,6 +1800,41 @@ void TickratePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBuff
 	aConcat.AppendToBuffer(sOutput, "Disconnect reason", (int)eReason);
 }
 
+void TickratePlugin::SendSetConVar(IRecipientFilter *pFilter, const CUtlVector<CVar_t> &vecCVars)
+{
+	auto *pSetConVarMessage = m_pSetConVarMessage;
+
+	if(IsChannelEnabled(LV_DETAILED))
+	{
+		const auto &aConcat = s_aEmbedConcat;
+
+		CBufferStringGrowable<1024> sBuffer;
+
+		sBuffer.Format("Send message (%s):\n", pSetConVarMessage->GetUnscopedName());
+
+		for(const auto &aCVar : vecCVars)
+		{
+			aConcat.AppendToBuffer(sBuffer, aCVar.m_pszName, aCVar.m_pszValue);
+		}
+
+		Logger::Detailed(sBuffer);
+	}
+
+	auto *pMessage = pSetConVarMessage->AllocateMessage()->ToPB<CNETMsg_SetConVar>();
+
+	for(const auto &aCVar : vecCVars)
+	{
+		auto *pConVar = pMessage->mutable_convars()->add_cvars();
+
+		pConVar->set_name(aCVar.m_pszName);
+		pConVar->set_value(aCVar.m_pszValue);
+	}
+
+	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pSetConVarMessage, pMessage, 0);
+
+	delete pMessage;
+}
+
 void TickratePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
 {
 	auto *pGetCvarValueMessage = m_pGetCvarValueMessage;
@@ -2039,11 +2079,23 @@ void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServer
 
 	auto aPlayerSlot = pClient->GetPlayerSlot();
 
+	CSingleRecipientFilter aFilter(aPlayerSlot);
+
+	// Replicate "sv_to_cl_clock_correction" to client's "cl_clock_correction"
+	{
+		char sClockCorrectionValue[8];
+
+		CUtlVector<CVar_t> vecConVars;
+
+		m_aSVToClientClockCorrection.GetStringValue(sClockCorrectionValue, sizeof(sClockCorrectionValue));
+		vecConVars.AddToTail({TICKRATE_CLIENT_CVAR_NAME_CLOCK_CORRECTION, sClockCorrectionValue});
+		SendSetConVar(&aFilter, vecConVars);
+	}
+
 	pClient->SetUpdateRate((float)(Get()));
 
 	// Get "cl_language" cvar value from a client.
 	{
-		CSingleRecipientFilter aFilter(aPlayerSlot);
 
 		const char *pszCvarName = TICKRATE_CLIENT_CVAR_NAME_LANGUAGE;
 

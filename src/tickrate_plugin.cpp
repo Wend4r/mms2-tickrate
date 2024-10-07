@@ -2043,8 +2043,11 @@ void TickratePlugin::OnFillServerInfo(CNetworkGameServerBase *pNetServer, CSVCMs
 
 void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
-	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &TickratePlugin::OnProcessRespondCvarValueHook, false);
-	SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &TickratePlugin::OnDisconectClientHook, false);
+	if(pClient)
+	{
+		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &TickratePlugin::OnProcessRespondCvarValueHook, false);
+		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &TickratePlugin::OnDisconectClientHook, false);
+	}
 
 	if(IsChannelEnabled(LS_DETAILED))
 	{

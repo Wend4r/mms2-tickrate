@@ -27,17 +27,19 @@ on:
       - 'trigger-build.txt'
 
 env:
-  CMAKE_DEBUG_PRESET_NAME: Windows/Debug
-  CMAKE_DEBUG_PRESET_PUBLIC_NAME: Debug
-  CMAKE_DEBUG_CONFIG_NAME: Debug
-  CMAKE_DEBUG_OUTPUT_PATTERN: build/Windows/Debug/Debug/*
-  CMAKE_RELEASE_PRESET_NAME: Windows/Release
-  CMAKE_RELEASE_PRESET_PUBLIC_NAME: Release
-  CMAKE_RELEASE_CONFIG_NAME: Release
-  CMAKE_RELEASE_OUTPUT_PATTERN: build/Windows/Release/Release/*
-  MSVC_CC: cl
-  MSVC_CXX: cl
-  MSVC_NAME: MSVC
+  CMAKE_CONFIGURE_PRESET_NAME: VisualStudio
+
+  CMAKE_DEBUG_BUILD_PRESET_NAME: VisualStudio\Debug
+  CMAKE_DEBUG_BUILD_PRESET_PUBLIC_NAME: VisualStudio-Debug
+  CMAKE_DEBUG_OUTPUT_PATTERN: build\Windows\VisualStudio\Debug\*
+
+  CMAKE_RELEASE_BUILD_PRESET_NAME: VisualStudio\Release
+  CMAKE_RELEASE_BUILD_PRESET_PUBLIC_NAME: VisualStudio-Release
+  CMAKE_RELEASE_OUTPUT_PATTERN: build\Windows\VisualStudio\Release\*
+
+  COMPILER_CC: cl
+  COMPILER_CXX: cl
+  COMPILER_NAME: MSVC
 
 jobs:
   build:
@@ -75,32 +77,27 @@ jobs:
         }
       shell: pwsh
 
-    - name: Debug - Configure CMake
+    - name: Configure CMake
       run: >
-        cmake --preset ${{ env.CMAKE_DEBUG_PRESET_NAME }}
-        -DCMAKE_C_COMPILER=${{ env.MSVC_CC }}
-        -DCMAKE_CXX_COMPILER=${{ env.MSVC_CXX }}
+        cmake --preset ${{ env.CMAKE_CONFIGURE_PRESET_NAME }}
+        -DCMAKE_C_COMPILER=${{ env.COMPILER_CC }}
+        -DCMAKE_CXX_COMPILER=${{ env.COMPILER_CXX }}
 
     - name: Debug - Build
-      run: cmake --build --preset ${{ env.CMAKE_DEBUG_PRESET_NAME }} --parallel --config ${{ env.CMAKE_DEBUG_CONFIG_NAME }}
+      run: cmake --build --preset ${{ env.CMAKE_DEBUG_BUILD_PRESET_NAME }} --parallel
 
     - name: Debug - Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.REPOSITORY_NAME }}-${{ env.LATEST_TAG }}-${{ runner.os }}-${{ env.MSVC_NAME }}-${{ env.CMAKE_DEBUG_PRESET_PUBLIC_NAME }}
+        name: ${{ env.REPOSITORY_NAME }}-${{ env.LATEST_TAG }}-${{ runner.os }}-${{ env.COMPILER_NAME }}-${{ env.CMAKE_DEBUG_BUILD_PRESET_PUBLIC_NAME }}
         path: ${{ env.CMAKE_DEBUG_OUTPUT_PATTERN }}
 
-    - name: Release - Configure CMake
-      run: >
-        cmake --preset ${{ env.CMAKE_RELEASE_PRESET_NAME }}
-        -DCMAKE_C_COMPILER=${{ env.MSVC_CC }}
-        -DCMAKE_CXX_COMPILER=${{ env.MSVC_CXX }}
-
     - name: Release - Build
-      run: cmake --build --preset ${{ env.CMAKE_RELEASE_PRESET_NAME }} --parallel --config ${{ env.CMAKE_RELEASE_CONFIG_NAME }}
+      run: cmake --build --preset ${{ env.CMAKE_RELEASE_BUILD_PRESET_NAME }} --parallel
 
     - name: Release - Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.REPOSITORY_NAME }}-${{ env.LATEST_TAG }}-${{ runner.os }}-${{ env.MSVC_NAME }}-${{ env.CMAKE_RELEASE_PRESET_PUBLIC_NAME }}
+        name: ${{ env.REPOSITORY_NAME }}-${{ env.LATEST_TAG }}-${{ runner.os }}-${{ env.COMPILER_NAME }}-${{ env.CMAKE_RELEASE_BUILD_PRESET_PUBLIC_NAME }}
         path: ${{ env.CMAKE_RELEASE_OUTPUT_PATTERN }}
+  

@@ -47,12 +47,12 @@
 SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandHandle, const CCommandContext &, const CCommand &);
 SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const GameSessionConfiguration_t &, ISource2WorldSession *, const char *);
 SH_DECL_HOOK1_void(CNetworkGameServerBase, FillServerInfo, SH_NOATTRIB, 0, CSVCMsg_ServerInfo_t *);
-SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, int, CCLCMsg_SplitPlayerConnect_t *, const char *, const byte *, int, bool);
+SH_DECL_HOOK8(CNetworkGameServerBase, ConnectClient, SH_NOATTRIB, 0, CServerSideClientBase *, const char *, ns_address *, void *, C2S_CONNECT_Message *, const char *, const byte *, int, bool);
 SH_DECL_HOOK1(CServerSideClientBase, ProcessRespondCvarValue, SH_NOATTRIB, 0, bool, const CCLCMsg_RespondCvarValue_t &);
 SH_DECL_HOOK1_void(CServerSideClientBase, PerformDisconnection, SH_NOATTRIB, 0, ENetworkDisconnectionReason);
 
-static TickratePlugin s_aTickratePlugin;
-TickratePlugin *g_pTickratePlugin = &s_aTickratePlugin;
+static Tickrate_Plugin s_aTickratePlugin;
+Tickrate_Plugin *g_pTickratePlugin = &s_aTickratePlugin;
 
 const ConcatLineString s_aEmbedConcat =
 {
@@ -74,9 +74,9 @@ const ConcatLineString s_aEmbed2Concat =
 	}
 };
 
-PLUGIN_EXPOSE(TickratePlugin, s_aTickratePlugin);
+PLUGIN_EXPOSE(Tickrate_Plugin, s_aTickratePlugin);
 
-TickratePlugin::TickratePlugin()
+Tickrate_Plugin::Tickrate_Plugin()
  :  Logger(GetName(), [](LoggingChannelID_t nTagChannelID)
     {
     	LoggingSystem_AddTagToChannel(nTagChannelID, s_aTickratePlugin.GetLogTag());
@@ -95,7 +95,7 @@ TickratePlugin::TickratePlugin()
 {
 }
 
-bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
+bool Tickrate_Plugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
 	PLUGIN_SAVEVARS();
 
@@ -106,9 +106,9 @@ bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen
 		return false;
 	}
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		DumpGlobals(s_aEmbedConcat, sMessage);
 		Logger::Detailed(sMessage);
@@ -146,8 +146,8 @@ bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen
 		return false;
 	}
 
-	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &TickratePlugin::OnDispatchConCommandHook), false);
-	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &TickratePlugin::OnStartupServerHook, true);
+	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pCVar, SH_MEMBER(this, &Tickrate_Plugin::OnDispatchConCommandHook), false);
+	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &Tickrate_Plugin::OnStartupServerHook, true);
 
 	// Register chat commands.
 	Tickrate::ChatCommandSystem::Register("tickrate", [&](CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArguments)
@@ -184,7 +184,7 @@ bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen
 			{
 				if(pClient->IsConnected() && !pClient->IsFakeClient())
 				{
-					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, -1, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
+					OnConnectClient(pNetServer, pClient, pClient->GetClientName(), &pClient->m_nAddr, NULL, NULL, NULL, NULL, 0, pClient->m_bLowViolence);
 				}
 			}
 		}
@@ -210,19 +210,19 @@ bool TickratePlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen
 	return true;
 }
 
-bool TickratePlugin::Unload(char *error, size_t maxlen)
+bool Tickrate_Plugin::Unload(char *error, size_t maxlen)
 {
 	{
 		auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
 		if(pNetServer)
 		{
-			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &TickratePlugin::OnConnectClientHook, true);
-			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, FillServerInfo, pNetServer, this, &TickratePlugin::OnFillServerInfoHook, true);
+			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &Tickrate_Plugin::OnConnectClientHook, true);
+			SH_REMOVE_HOOK_MEMFUNC(CNetworkGameServerBase, FillServerInfo, pNetServer, this, &Tickrate_Plugin::OnFillServerInfoHook, true);
 		}
 	}
 
-	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &TickratePlugin::OnStartupServerHook, true);
+	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &Tickrate_Plugin::OnStartupServerHook, true);
 
 	Assert(ClearLanguages());
 	Assert(ClearTranslations());
@@ -269,17 +269,17 @@ bool TickratePlugin::Unload(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::Pause(char *error, size_t maxlen)
+bool Tickrate_Plugin::Pause(char *error, size_t maxlen)
 {
 	return true;
 }
 
-bool TickratePlugin::Unpause(char *error, size_t maxlen)
+bool Tickrate_Plugin::Unpause(char *error, size_t maxlen)
 {
 	return true;
 }
 
-void TickratePlugin::AllPluginsLoaded()
+void Tickrate_Plugin::AllPluginsLoaded()
 {
 	/**
 	 * AMNOTE: This is where we'd do stuff that relies on the mod or other plugins 
@@ -287,16 +287,16 @@ void TickratePlugin::AllPluginsLoaded()
 	 */
 }
 
-const char *TickratePlugin::GetAuthor()        { return META_PLUGIN_AUTHOR; }
-const char *TickratePlugin::GetName()          { return META_PLUGIN_NAME; }
-const char *TickratePlugin::GetDescription()   { return META_PLUGIN_DESCRIPTION; }
-const char *TickratePlugin::GetURL()           { return META_PLUGIN_URL; }
-const char *TickratePlugin::GetLicense()       { return META_PLUGIN_LICENSE; }
-const char *TickratePlugin::GetVersion()       { return META_PLUGIN_VERSION; }
-const char *TickratePlugin::GetDate()          { return META_PLUGIN_DATE; }
-const char *TickratePlugin::GetLogTag()        { return META_PLUGIN_LOG_TAG; }
+const char *Tickrate_Plugin::GetAuthor()        { return META_PLUGIN_AUTHOR; }
+const char *Tickrate_Plugin::GetName()          { return META_PLUGIN_NAME; }
+const char *Tickrate_Plugin::GetDescription()   { return META_PLUGIN_DESCRIPTION; }
+const char *Tickrate_Plugin::GetURL()           { return META_PLUGIN_URL; }
+const char *Tickrate_Plugin::GetLicense()       { return META_PLUGIN_LICENSE; }
+const char *Tickrate_Plugin::GetVersion()       { return META_PLUGIN_VERSION; }
+const char *Tickrate_Plugin::GetDate()          { return META_PLUGIN_DATE; }
+const char *Tickrate_Plugin::GetLogTag()        { return META_PLUGIN_LOG_TAG; }
 
-void *TickratePlugin::OnMetamodQuery(const char *iface, int *ret)
+void *Tickrate_Plugin::OnMetamodQuery(const char *iface, int *ret)
 {
 	if(!strcmp(iface, TICKRATE_INTERFACE_NAME))
 	{
@@ -316,94 +316,94 @@ void *TickratePlugin::OnMetamodQuery(const char *iface, int *ret)
 	return nullptr;
 }
 
-CGameEntitySystem **TickratePlugin::GetGameEntitySystemPointer() const
+CGameEntitySystem **Tickrate_Plugin::GetGameEntitySystemPointer() const
 {
 	return reinterpret_cast<CGameEntitySystem **>((uintptr_t)g_pGameResourceServiceServer + GetGameDataStorage().GetGameResource().GetEntitySystemOffset());
 }
 
-CBaseGameSystemFactory **TickratePlugin::GetFirstGameSystemPointer() const
+CBaseGameSystemFactory **Tickrate_Plugin::GetFirstGameSystemPointer() const
 {
 	return GetGameDataStorage().GetGameSystem().GetFirstPointer();
 }
 
-CFrame *TickratePlugin::GetHostFramePointer() const
+CFrame *Tickrate_Plugin::GetHostFramePointer() const
 {
 	return GetGameDataStorage().GetHostFrame().GetPointer();
 }
 
-IGameEventManager2 **TickratePlugin::GetGameEventManagerPointer() const
+IGameEventManager2 **Tickrate_Plugin::GetGameEventManagerPointer() const
 {
 	return reinterpret_cast<IGameEventManager2 **>(GetGameDataStorage().GetSource2Server().GetGameEventManagerPointer());
 }
 
-float *TickratePlugin::GetTickIntervalPointer() const
+float *Tickrate_Plugin::GetTickIntervalPointer() const
 {
 	return GetGameDataStorage().GetTick().GetIntervalPointer();
 }
 
-double *TickratePlugin::GetTickInterval2Pointer() const
+double *Tickrate_Plugin::GetTickInterval2Pointer() const
 {
 	return GetGameDataStorage().GetTick().GetInterval2Pointer();
 }
 
-float *TickratePlugin::GetTickInterval3DefaultPointer() const
+float *Tickrate_Plugin::GetTickInterval3DefaultPointer() const
 {
 	return GetGameDataStorage().GetTick().GetInterval3DefaultPointer();
 }
 
-float *TickratePlugin::GetTickInterval3Pointer() const
+float *Tickrate_Plugin::GetTickInterval3Pointer() const
 {
 	return GetGameDataStorage().GetTick().GetInterval3Pointer();
 }
 
-float *TickratePlugin::GetTicksPerSecondPointer() const
+float *Tickrate_Plugin::GetTicksPerSecondPointer() const
 {
 	return GetGameDataStorage().GetTick().GetPerSecond();
 }
 
-TickratePlugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
+Tickrate_Plugin::CLanguage::CLanguage(const CUtlSymbolLarge &sInitName, const char *pszInitCountryCode)
  :  m_sName(sInitName), 
     m_sCountryCode(pszInitCountryCode)
 {
 }
 
-const char *TickratePlugin::CLanguage::GetName() const
+const char *Tickrate_Plugin::CLanguage::GetName() const
 {
 	return m_sName.String();
 }
 
-void TickratePlugin::CLanguage::SetName(const CUtlSymbolLarge &s)
+void Tickrate_Plugin::CLanguage::SetName(const CUtlSymbolLarge &s)
 {
 	m_sName = s;
 }
 
-const char *TickratePlugin::CLanguage::GetCountryCode() const
+const char *Tickrate_Plugin::CLanguage::GetCountryCode() const
 {
 	return m_sCountryCode;
 }
 
-void TickratePlugin::CLanguage::SetCountryCode(const char *psz)
+void Tickrate_Plugin::CLanguage::SetCountryCode(const char *psz)
 {
 	m_sCountryCode = psz;
 }
 
-TickratePlugin::CPlayerData::CPlayerData()
+Tickrate_Plugin::CPlayerData::CPlayerData()
  :  m_pLanguage(nullptr), 
     m_aChangeTickratePhrase({nullptr, nullptr})
 {
 }
 
-const ITickrate::ILanguage *TickratePlugin::CPlayerData::GetLanguage() const
+const ITickrate::ILanguage *Tickrate_Plugin::CPlayerData::GetLanguage() const
 {
 	return m_pLanguage;
 }
 
-void TickratePlugin::CPlayerData::SetLanguage(const ILanguage *pData)
+void Tickrate_Plugin::CPlayerData::SetLanguage(const ILanguage *pData)
 {
 	m_pLanguage = pData;
 }
 
-bool TickratePlugin::CPlayerData::AddLanguageListener(const LanguageHandleCallback_t *pfnCallback)
+bool Tickrate_Plugin::CPlayerData::AddLanguageListener(const LanguageHandleCallback_t *pfnCallback)
 {
 	// Check on exists.
 	{
@@ -417,12 +417,12 @@ bool TickratePlugin::CPlayerData::AddLanguageListener(const LanguageHandleCallba
 	return true;
 }
 
-bool TickratePlugin::CPlayerData::RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback)
+bool Tickrate_Plugin::CPlayerData::RemoveLanguageListener(const LanguageHandleCallback_t *pfnCallback)
 {
 	return m_vecLanguageCallbacks.FindAndRemove(pfnCallback);
 }
 
-void TickratePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData)
+void Tickrate_Plugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguage *pData)
 {
 	SetLanguage(pData);
 
@@ -433,7 +433,7 @@ void TickratePlugin::CPlayerData::OnLanguageReceived(CPlayerSlot aSlot, CLanguag
 }
 
 
-void TickratePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
+void Tickrate_Plugin::CPlayerData::TranslatePhrases(const Translations *pTranslations, const CLanguage &aServerLanguage, CUtlVector<CUtlString> &vecMessages)
 {
 	const struct
 	{
@@ -499,34 +499,34 @@ void TickratePlugin::CPlayerData::TranslatePhrases(const Translations *pTranslat
 	}
 }
 
-const TickratePlugin::CPlayerData::TranslatedPhrase &TickratePlugin::CPlayerData::GetChangeTickratePhrase() const
+const Tickrate_Plugin::CPlayerData::TranslatedPhrase &Tickrate_Plugin::CPlayerData::GetChangeTickratePhrase() const
 {
 	return m_aChangeTickratePhrase;
 }
 
-const TickratePlugin::CPlayerData::TranslatedPhrase &TickratePlugin::CPlayerData::GetCurrentTickratePhrase() const
+const Tickrate_Plugin::CPlayerData::TranslatedPhrase &Tickrate_Plugin::CPlayerData::GetCurrentTickratePhrase() const
 {
 	return m_aCurrentTickratePhrase;
 }
 
-const ITickrate::ILanguage *TickratePlugin::GetServerLanguage() const
+const ITickrate::ILanguage *Tickrate_Plugin::GetServerLanguage() const
 {
 	return &m_aServerLanguage;
 }
 
-const ITickrate::ILanguage *TickratePlugin::GetLanguageByName(const char *psz) const
+const ITickrate::ILanguage *Tickrate_Plugin::GetLanguageByName(const char *psz) const
 {
 	auto iFound = m_mapLanguages.Find(FindLanguageSymbol(psz));
 
 	return m_mapLanguages.IsValidIndex(iFound) ? &m_mapLanguages.Element(iFound) : nullptr;
 }
 
-ITickrate::IPlayerData *TickratePlugin::GetPlayerData(const CPlayerSlot &aSlot)
+ITickrate::IPlayerData *Tickrate_Plugin::GetPlayerData(const CPlayerSlot &aSlot)
 {
 	return &m_aPlayers[aSlot.Get()];
 }
 
-TickratePlugin::CChangedData::CChangedData(int nInitOld, int nInitNew)
+Tickrate_Plugin::CChangedData::CChangedData(int nInitOld, int nInitNew)
  :  m_nOld(nInitOld), 
     m_flOldInterval(1.0f / nInitOld), 
     m_nNew(nInitNew), 
@@ -536,37 +536,37 @@ TickratePlugin::CChangedData::CChangedData(int nInitOld, int nInitNew)
 {
 }
 
-int TickratePlugin::CChangedData::GetOld() const
+int Tickrate_Plugin::CChangedData::GetOld() const
 {
 	return m_nOld;
 }
 
-float TickratePlugin::CChangedData::GetOldInterval() const
+float Tickrate_Plugin::CChangedData::GetOldInterval() const
 {
 	return m_flOldInterval;
 }
 
-int TickratePlugin::CChangedData::GetNew() const
+int Tickrate_Plugin::CChangedData::GetNew() const
 {
 	return m_nNew;
 }
 
-float TickratePlugin::CChangedData::GetNewInterval() const
+float Tickrate_Plugin::CChangedData::GetNewInterval() const
 {
 	return m_flNewInterval;
 }
 
-double TickratePlugin::CChangedData::GetNewInterval2() const
+double Tickrate_Plugin::CChangedData::GetNewInterval2() const
 {
 	return m_dblNewInterval;
 }
 
-float TickratePlugin::CChangedData::GetMultiple() const
+float Tickrate_Plugin::CChangedData::GetMultiple() const
 {
 	return m_flMultiple;
 }
 
-int TickratePlugin::Get()
+int Tickrate_Plugin::Get()
 {
 	float *pTickInterval = GetTickIntervalPointer();
 
@@ -580,7 +580,7 @@ int TickratePlugin::Get()
 	return TICKRATE_DEFAULT;
 }
 
-int TickratePlugin::Set(int nNew)
+int Tickrate_Plugin::Set(int nNew)
 {
 	int nOld = Get();
 
@@ -590,7 +590,7 @@ int TickratePlugin::Set(int nNew)
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		sMessage.Format("Old tick intervals:\n");
 
@@ -725,7 +725,7 @@ int TickratePlugin::Set(int nNew)
 	return nOld;
 }
 
-int TickratePlugin::Change(int nNew)
+int Tickrate_Plugin::Change(int nNew)
 {
 	int nOld = Get();
 
@@ -734,7 +734,7 @@ int TickratePlugin::Change(int nNew)
 	return nOld;
 }
 
-int TickratePlugin::ChangeInternal(int nNew)
+int Tickrate_Plugin::ChangeInternal(int nNew)
 {
 	int nOld = Set(nNew);
 
@@ -780,14 +780,14 @@ int TickratePlugin::ChangeInternal(int nNew)
 	return nOld;
 }
 
-void TickratePlugin::ChangeHostFrame(CFrame *pHostFrame, const CChangedData &aData)
+void Tickrate_Plugin::ChangeHostFrame(CFrame *pHostFrame, const CChangedData &aData)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat, 
 		           &aConcat2 = s_aEmbed2Concat;
 
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		sMessage.Format("Host frame:\n");
 		DumpHostFrame(aConcat, sMessage, pHostFrame);
@@ -801,14 +801,14 @@ void TickratePlugin::ChangeHostFrame(CFrame *pHostFrame, const CChangedData &aDa
 	pHostFrame->time_computationduration = flNewInterval;
 }
 
-void TickratePlugin::ChangeGlobals(CGlobalVars *pGlobals, const CChangedData &aData)
+void Tickrate_Plugin::ChangeGlobals(CGlobalVars *pGlobals, const CChangedData &aData)
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat, 
 		           &aConcat2 = s_aEmbed2Concat;
 
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		sMessage.Format("Global vars:\n");
 		DumpGlobalVars(aConcat, aConcat2, sMessage, pGlobals);
@@ -827,9 +827,9 @@ void TickratePlugin::ChangeGlobals(CGlobalVars *pGlobals, const CChangedData &aD
 	pGlobals->rendertime *= flMultiple;
 }
 
-bool TickratePlugin::Init()
+bool Tickrate_Plugin::Init()
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
@@ -837,23 +837,23 @@ bool TickratePlugin::Init()
 	return true;
 }
 
-void TickratePlugin::PostInit()
+void Tickrate_Plugin::PostInit()
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
-void TickratePlugin::Shutdown()
+void Tickrate_Plugin::Shutdown()
 {
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		Logger::DetailedFormat("%s\n", __FUNCTION__);
 	}
 }
 
-GS_EVENT_MEMBER(TickratePlugin, GameFrameBoundary)
+GS_EVENT_MEMBER(Tickrate_Plugin, GameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -862,7 +862,7 @@ GS_EVENT_MEMBER(TickratePlugin, GameFrameBoundary)
 		{
 			const auto &aConcat = s_aEmbedConcat;
 
-			CBufferStringGrowable<1024> sBuffer;
+			CBufferStringN<1024> sBuffer;
 
 			DumpEventFrameBoundary(aConcat, sBuffer, msg);
 			Logger::Detailed(sBuffer);
@@ -870,7 +870,7 @@ GS_EVENT_MEMBER(TickratePlugin, GameFrameBoundary)
 	}
 }
 
-GS_EVENT_MEMBER(TickratePlugin, OutOfGameFrameBoundary)
+GS_EVENT_MEMBER(Tickrate_Plugin, OutOfGameFrameBoundary)
 {
 	if(m_aEnableFrameDetailsConVar.GetValue() && IsChannelEnabled(LS_DETAILED))
 	{
@@ -879,7 +879,7 @@ GS_EVENT_MEMBER(TickratePlugin, OutOfGameFrameBoundary)
 		{
 			const auto &aConcat = s_aEmbedConcat;
 
-			CBufferStringGrowable<1024> sBuffer;
+			CBufferStringN<1024> sBuffer;
 
 			DumpEventFrameBoundary(aConcat, sBuffer, msg);
 			Logger::Detailed(sBuffer);
@@ -887,7 +887,7 @@ GS_EVENT_MEMBER(TickratePlugin, OutOfGameFrameBoundary)
 	}
 }
 
-bool TickratePlugin::InitProvider(char *error, size_t maxlen)
+bool Tickrate_Plugin::InitProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -895,7 +895,7 @@ bool TickratePlugin::InitProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(IsChannelEnabled(LS_WARNING))
+		if(Logger::IsChannelEnabled(LS_WARNING))
 		{
 			auto aWarnings = Logger::CreateWarningsScope();
 
@@ -924,7 +924,7 @@ bool TickratePlugin::InitProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool TickratePlugin::LoadProvider(char *error, size_t maxlen)
+bool Tickrate_Plugin::LoadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -932,7 +932,7 @@ bool TickratePlugin::LoadProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(IsChannelEnabled(LS_WARNING))
+		if(Logger::IsChannelEnabled(LS_WARNING))
 		{
 			auto aWarnings = Logger::CreateWarningsScope();
 
@@ -961,7 +961,7 @@ bool TickratePlugin::LoadProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool TickratePlugin::UnloadProvider(char *error, size_t maxlen)
+bool Tickrate_Plugin::UnloadProvider(char *error, size_t maxlen)
 {
 	GameData::CBufferStringVector vecMessages;
 
@@ -969,7 +969,7 @@ bool TickratePlugin::UnloadProvider(char *error, size_t maxlen)
 
 	if(vecMessages.Count())
 	{
-		if(IsChannelEnabled(LS_WARNING))
+		if(Logger::IsChannelEnabled(LS_WARNING))
 		{
 			auto aWarnings = Logger::CreateWarningsScope();
 
@@ -998,7 +998,7 @@ bool TickratePlugin::UnloadProvider(char *error, size_t maxlen)
 	return bResult;
 }
 
-bool TickratePlugin::RegisterGameResource(char *error, size_t maxlen)
+bool Tickrate_Plugin::RegisterGameResource(char *error, size_t maxlen)
 {
 	CGameEntitySystem **pGameEntitySystem = GetGameEntitySystemPointer();
 
@@ -1023,7 +1023,7 @@ bool TickratePlugin::RegisterGameResource(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::UnregisterGameResource(char *error, size_t maxlen)
+bool Tickrate_Plugin::UnregisterGameResource(char *error, size_t maxlen)
 {
 	if(!UnregisterGameEntitySystem())
 	{
@@ -1038,7 +1038,7 @@ bool TickratePlugin::UnregisterGameResource(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::RegisterGameFactory(char *error, size_t maxlen)
+bool Tickrate_Plugin::RegisterGameFactory(char *error, size_t maxlen)
 {
 	CBaseGameSystemFactory **ppFactory = GetGameDataStorage().GetGameSystem().GetFirstPointer();
 
@@ -1062,12 +1062,12 @@ bool TickratePlugin::RegisterGameFactory(char *error, size_t maxlen)
 		return false;
 	}
 
-	m_pFactory = new CGameSystemStaticFactory<TickratePlugin>(GetName(), this);
+	m_pFactory = new CGameSystemStaticFactory<Tickrate_Plugin>(GetName(), this);
 
 	return true;
 }
 
-bool TickratePlugin::UnregisterGameFactory(char *error, size_t maxlen)
+bool Tickrate_Plugin::UnregisterGameFactory(char *error, size_t maxlen)
 {
 	if(m_pFactory)
 	{
@@ -1088,7 +1088,7 @@ bool TickratePlugin::UnregisterGameFactory(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::RegisterSource2Server(char *error, size_t maxlen)
+bool Tickrate_Plugin::RegisterSource2Server(char *error, size_t maxlen)
 {
 	IGameEventManager2 **ppGameEventManager = GetGameEventManagerPointer();
 
@@ -1115,7 +1115,7 @@ bool TickratePlugin::RegisterSource2Server(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::UnregisterSource2Server(char *error, size_t maxlen)
+bool Tickrate_Plugin::UnregisterSource2Server(char *error, size_t maxlen)
 {
 	if(!UnregisterGameEventManager())
 	{
@@ -1130,7 +1130,7 @@ bool TickratePlugin::UnregisterSource2Server(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
+bool Tickrate_Plugin::RegisterTick(char *error, size_t maxlen)
 {
 	// A tick interval.
 	{
@@ -1245,7 +1245,7 @@ bool TickratePlugin::RegisterTick(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::UnregisterTick(char *error, size_t maxlen)
+bool Tickrate_Plugin::UnregisterTick(char *error, size_t maxlen)
 {
 	// A tick interval.
 	{
@@ -1310,7 +1310,7 @@ bool TickratePlugin::UnregisterTick(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::RegisterNetMessages(char *error, size_t maxlen)
+bool Tickrate_Plugin::RegisterNetMessages(char *error, size_t maxlen)
 {
 	const struct
 	{
@@ -1358,14 +1358,14 @@ bool TickratePlugin::RegisterNetMessages(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::UnregisterNetMessages(char *error, size_t maxlen)
+bool Tickrate_Plugin::UnregisterNetMessages(char *error, size_t maxlen)
 {
 	m_pSayText2Message = NULL;
 
 	return true;
 }
 
-bool TickratePlugin::ParseLanguages(char *error, size_t maxlen)
+bool Tickrate_Plugin::ParseLanguages(char *error, size_t maxlen)
 {
 	const char *pszPathID = TICKRATE_BASE_PATHID, 
 	           *pszLanguagesFiles = TICKRATE_GAME_LANGUAGES_PATH_FILES;
@@ -1430,7 +1430,7 @@ bool TickratePlugin::ParseLanguages(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages)
+bool Tickrate_Plugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &vecMessages)
 {
 	int iMemberCount = pRoot->GetMemberCount();
 
@@ -1463,14 +1463,14 @@ bool TickratePlugin::ParseLanguages(KeyValues3 *pRoot, CUtlVector<CUtlString> &v
 	return true;
 }
 
-bool TickratePlugin::ClearLanguages(char *error, size_t maxlen)
+bool Tickrate_Plugin::ClearLanguages(char *error, size_t maxlen)
 {
 	m_vecLanguages.Purge();
 
 	return true;
 }
 
-bool TickratePlugin::ParseTranslations(char *error, size_t maxlen)
+bool Tickrate_Plugin::ParseTranslations(char *error, size_t maxlen)
 {
 	const char *pszPathID = TICKRATE_BASE_PATHID, 
 	           *pszTranslationsFiles = TICKRATE_GAME_TRANSLATIONS_PATH_FILES;
@@ -1536,14 +1536,14 @@ bool TickratePlugin::ParseTranslations(char *error, size_t maxlen)
 	return true;
 }
 
-bool TickratePlugin::ClearTranslations(char *error, size_t maxlen)
+bool Tickrate_Plugin::ClearTranslations(char *error, size_t maxlen)
 {
 	Translations::Purge();
 
 	return true;
 }
 
-void TickratePlugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
+void Tickrate_Plugin::OnReloadGameDataCommand(const CCommandContext &context, const CCommand &args)
 {
 	char error[256];
 
@@ -1553,9 +1553,9 @@ void TickratePlugin::OnReloadGameDataCommand(const CCommandContext &context, con
 	}
 }
 
-void TickratePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
+void Tickrate_Plugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs)
 {
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		Logger::DetailedFormat("%s(%d, %d, %s)\n", __FUNCTION__, hCommand.GetIndex(), aContext.GetPlayerSlot().Get(), aArgs.GetCommandString());
 	}
@@ -1611,12 +1611,12 @@ void TickratePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const C
 						sArg.Trim(' ');
 					}
 
-					if(IsChannelEnabled(LV_DETAILED))
+					if(Logger::IsChannelEnabled(LV_DETAILED))
 					{
 						const auto &aConcat = s_aEmbedConcat, 
 						           &aConcat2 = s_aEmbed2Concat;
 
-						CBufferStringGrowable<1024> sBuffer;
+						CBufferStringN<1024> sBuffer;
 
 						sBuffer.Format("Handle a chat command:\n");
 						aConcat.AppendToBuffer(sBuffer, "Player slot", aPlayerSlot.Get());
@@ -1644,7 +1644,7 @@ void TickratePlugin::OnDispatchConCommandHook(ConCommandHandle hCommand, const C
 	RETURN_META(MRES_IGNORED);
 }
 
-void TickratePlugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
+void Tickrate_Plugin::OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *)
 {
 	auto *pNetServer = reinterpret_cast<CNetworkGameServerBase *>(g_pNetworkServerService->GetIGameServer());
 
@@ -1653,7 +1653,7 @@ void TickratePlugin::OnStartupServerHook(const GameSessionConfiguration_t &confi
 	RETURN_META(MRES_IGNORED);
 }
 
-void TickratePlugin::OnFillServerInfoHook(CSVCMsg_ServerInfo_t *pServerInfo)
+void Tickrate_Plugin::OnFillServerInfoHook(CSVCMsg_ServerInfo_t *pServerInfo)
 {
 	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
 
@@ -1662,50 +1662,40 @@ void TickratePlugin::OnFillServerInfoHook(CSVCMsg_ServerInfo_t *pServerInfo)
 	RETURN_META(MRES_IGNORED);
 }
 
-CServerSideClientBase *TickratePlugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, 
-                                                         const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+CServerSideClientBase *Tickrate_Plugin::OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, 
+                                                            const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
-	auto *pNetServer = META_IFACEPTR(CNetworkGameServerBase);
-
-	auto *pClient = META_RESULT_ORIG_RET(CServerSideClientBase *);
-
-	OnConnectClient(pNetServer, pClient, pszName, pAddr, socket, pSplitPlayer, pszChallenge, pAuthTicket, nAuthTicketLength, bIsLowViolence);
+	OnConnectClient(META_IFACEPTR(CNetworkGameServerBase), META_RESULT_ORIG_RET(CServerSideClientBase *), pszName, pAddr, pNetInfo, pConnectMsg, pszChallenge, pAuthTicket, nAuthTicketLength, bIsLowViolence);
 
 	RETURN_META_VALUE(MRES_IGNORED, NULL);
 }
 
-bool TickratePlugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage)
+bool Tickrate_Plugin::OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage)
 {
-	auto *pClient = META_IFACEPTR(CServerSideClientBase);
-
-	OnProcessRespondCvarValue(pClient, aMessage);
-
-	RETURN_META_VALUE(MRES_IGNORED, true);
+	RETURN_META_VALUE(MRES_IGNORED, OnProcessRespondCvarValue(META_IFACEPTR(CServerSideClientBase), aMessage));
 }
 
-void TickratePlugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
+void Tickrate_Plugin::OnDisconectClientHook(ENetworkDisconnectionReason eReason)
 {
-	auto *pClient = META_IFACEPTR(CServerSideClientBase);
-
-	OnDisconectClient(pClient, eReason);
+	OnDisconectClient(META_IFACEPTR(CServerSideClientBase), eReason);
 
 	RETURN_META(MRES_IGNORED);
 }
 
-void TickratePlugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage)
+void Tickrate_Plugin::DumpProtobufMessage(const ConcatLineString &aConcat, CBufferString &sOutput, const google::protobuf::Message &aMessage)
 {
-	CBufferStringGrowable<1024> sProtoOutput;
+	CBufferStringN<1024> sProtoOutput;
 
 	sProtoOutput.Insert(0, aMessage.DebugString().c_str());
 	sProtoOutput.Replace("\n", aConcat.m_aEndAndNextLine);
-	sProtoOutput.SetLength(sProtoOutput.GetTotalNumber() - (V_strlen(aConcat.m_aEndAndNextLine) - 1)); // Strip the last next line, leaving the end.
+	sProtoOutput.SetLength(sProtoOutput.Length() - (V_strlen(aConcat.m_aEndAndNextLine) - 1)); // Strip the last next line, leaving the end.
 
 	const char *pszProtoConcat[] = {aConcat.m_aStartWith, sProtoOutput.Get()};
 
 	sOutput.AppendConcat(ARRAYSIZE(pszProtoConcat), pszProtoConcat, NULL);
 }
 
-void TickratePlugin::DumpGlobalVars(const ConcatLineString &aConcat, CBufferString &sOutput, const CGlobalVarsBase *pGlobals)
+void Tickrate_Plugin::DumpGlobalVars(const ConcatLineString &aConcat, CBufferString &sOutput, const CGlobalVarsBase *pGlobals)
 {
 	aConcat.AppendToBuffer(sOutput, "Real time", pGlobals->realtime);
 	aConcat.AppendToBuffer(sOutput, "Frame count", pGlobals->framecount);
@@ -1730,7 +1720,7 @@ void TickratePlugin::DumpGlobalVars(const ConcatLineString &aConcat, CBufferStri
 	aConcat.AppendToBuffer(sOutput, "Unknown (#9)", pGlobals->unknown9);
 	aConcat.AppendToBuffer(sOutput, "Subtick fraction", pGlobals->m_flSubtickFraction);
 }
-void TickratePlugin::DumpGlobalVars(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const CGlobalVars *pGlobals)
+void Tickrate_Plugin::DumpGlobalVars(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const CGlobalVars *pGlobals)
 {
 	aConcat.AppendToBuffer(sOutput, "Base");
 	DumpGlobalVars(aConcat2, sOutput, reinterpret_cast<const CGlobalVarsBase *>(pGlobals));
@@ -1742,7 +1732,7 @@ void TickratePlugin::DumpGlobalVars(const ConcatLineString &aConcat, const Conca
 	aConcat.AppendToBuffer(sOutput, "Server count", pGlobals->serverCount);
 }
 
-void TickratePlugin::DumpHostFrame(const ConcatLineString &aConcat, CBufferString &sOutput, const CFrame *pHostFrame)
+void Tickrate_Plugin::DumpHostFrame(const ConcatLineString &aConcat, CBufferString &sOutput, const CFrame *pHostFrame)
 {
 	aConcat.AppendToBuffer(sOutput, "Start time STD deviation", pHostFrame->starttime_stddeviation);
 	aConcat.AppendToBuffer(sOutput, "Time STD deviation", pHostFrame->time_stddeviation);
@@ -1750,7 +1740,7 @@ void TickratePlugin::DumpHostFrame(const ConcatLineString &aConcat, CBufferStrin
 	aConcat.AppendToBuffer(sOutput, "Time unbounded", pHostFrame->time_unbounded);
 }
 
-void TickratePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
+void Tickrate_Plugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBufferString &sOutput, const EngineLoopState_t &aMessage)
 {
 	aConcat.AppendHandleToBuffer(sOutput, "Window handle", aMessage.m_hWnd);
 	aConcat.AppendHandleToBuffer(sOutput, "Swap chain handle", aMessage.m_hSwapChain);
@@ -1761,7 +1751,7 @@ void TickratePlugin::DumpEngineLoopState(const ConcatLineString &aConcat, CBuffe
 	aConcat.AppendToBuffer(sOutput, "Render height", aMessage.m_nRenderHeight);
 }
 
-void TickratePlugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList)
+void Tickrate_Plugin::DumpEntityList(const ConcatLineString &aConcat, CBufferString &sOutput, const CUtlVector<CEntityHandle> &vecEntityList)
 {
 	for(const auto &it : vecEntityList)
 	{
@@ -1769,7 +1759,7 @@ void TickratePlugin::DumpEntityList(const ConcatLineString &aConcat, CBufferStri
 	}
 }
 
-void TickratePlugin::DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage)
+void Tickrate_Plugin::DumpEventSimulate(const ConcatLineString &aConcat, const ConcatLineString &aConcat2, CBufferString &sOutput, const EventSimulate_t &aMessage)
 {
 	aConcat.AppendToBuffer(sOutput, "Loop state");
 	DumpEngineLoopState(aConcat2, sOutput, aMessage.m_LoopState);
@@ -1777,12 +1767,12 @@ void TickratePlugin::DumpEventSimulate(const ConcatLineString &aConcat, const Co
 	aConcat.AppendToBuffer(sOutput, "Last tick", aMessage.m_bLastTick);
 }
 
-void TickratePlugin::DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage)
+void Tickrate_Plugin::DumpEventFrameBoundary(const ConcatLineString &aConcat, CBufferString &sOutput, const EventFrameBoundary_t &aMessage)
 {
 	aConcat.AppendToBuffer(sOutput, "Frame time", aMessage.m_flFrameTime);
 }
 
-void TickratePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
+void Tickrate_Plugin::DumpServerSideClient(const ConcatLineString &aConcat, CBufferString &sOutput, CServerSideClientBase *pClient)
 {
 	aConcat.AppendStringToBuffer(sOutput, "Name", pClient->GetClientName());
 	aConcat.AppendToBuffer(sOutput, "Player slot", pClient->GetPlayerSlot().Get());
@@ -1795,20 +1785,22 @@ void TickratePlugin::DumpServerSideClient(const ConcatLineString &aConcat, CBuff
 	aConcat.AppendToBuffer(sOutput, "Low violence", pClient->IsLowViolenceClient());
 }
 
-void TickratePlugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
+void Tickrate_Plugin::DumpDisconnectReason(const ConcatLineString &aConcat, CBufferString &sOutput, ENetworkDisconnectionReason eReason)
 {
 	aConcat.AppendToBuffer(sOutput, "Disconnect reason", (int)eReason);
 }
 
-void TickratePlugin::SendSetConVar(IRecipientFilter *pFilter, const CUtlVector<CVar_t> &vecCVars)
+#include <tier0/memdbgon.h>
+
+void Tickrate_Plugin::SendSetConVar(IRecipientFilter *pFilter, const CUtlVector<CVar_t> &vecCVars)
 {
 	auto *pSetConVarMessage = m_pSetConVarMessage;
 
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("Send message (%s):\n", pSetConVarMessage->GetUnscopedName());
 
@@ -1832,18 +1824,21 @@ void TickratePlugin::SendSetConVar(IRecipientFilter *pFilter, const CUtlVector<C
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pSetConVarMessage, pMessage, 0);
 
-	delete pMessage;
+#ifndef _WIN32
+	Destruct(pMessage);
+	free((void *)pMessage);
+#endif // !_WIN32
 }
 
-void TickratePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
+void Tickrate_Plugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *pszName, int iCookie)
 {
 	auto *pGetCvarValueMessage = m_pGetCvarValueMessage;
 
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("Send get cvar message (%s):\n", pGetCvarValueMessage->GetUnscopedName());
 		aConcat.AppendStringToBuffer(sBuffer, "Cvar name", pszName);
@@ -1852,25 +1847,30 @@ void TickratePlugin::SendCvarValueQuery(IRecipientFilter *pFilter, const char *p
 		Logger::Detailed(sBuffer);
 	}
 
-	auto *pMessage = pGetCvarValueMessage->AllocateMessage()->ToPB<CSVCMsg_GetCvarValue>();
+	auto *pMessage = pGetCvarValueMessage->AllocateMessage();
 
-	pMessage->set_cvar_name(pszName);
-	pMessage->set_cookie(iCookie);
+	auto *pMessagePB = pMessage->ToPB<CSVCMsg_GetCvarValue>();
+
+	pMessagePB->set_cvar_name(pszName);
+	pMessagePB->set_cookie(iCookie);
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pGetCvarValueMessage, pMessage, 0);
 
-	delete pMessage;
+#ifndef _WIN32
+	Destruct(pMessage);
+	free((void *)pMessage);
+#endif // !_WIN32
 }
 
-void TickratePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
+void Tickrate_Plugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex, bool bIsChat, const char *pszChatMessageFormat, const char *pszParam1, const char *pszParam2, const char *pszParam3, const char *pszParam4)
 {
 	auto *pSayText2Message = m_pSayText2Message;
 
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("Send chat message (%s):\n", pSayText2Message->GetUnscopedName());
 		aConcat.AppendToBuffer(sBuffer, "Entity index", iEntityIndex);
@@ -1900,30 +1900,35 @@ void TickratePlugin::SendChatMessage(IRecipientFilter *pFilter, int iEntityIndex
 		Logger::Detailed(sBuffer);
 	}
 
-	auto *pMessage = pSayText2Message->AllocateMessage()->ToPB<CUserMessageSayText2>();
+	auto *pMessage = pSayText2Message->AllocateMessage();
 
-	pMessage->set_entityindex(iEntityIndex);
-	pMessage->set_chat(bIsChat);
-	pMessage->set_messagename(pszChatMessageFormat);
-	pMessage->set_param1(pszParam1);
-	pMessage->set_param2(pszParam2);
-	pMessage->set_param3(pszParam3);
-	pMessage->set_param4(pszParam4);
+	auto *pMessagePB = pMessage->ToPB<CUserMessageSayText2>();
+
+	pMessagePB->set_entityindex(iEntityIndex);
+	pMessagePB->set_chat(bIsChat);
+	pMessagePB->set_messagename(pszChatMessageFormat);
+	pMessagePB->set_param1(pszParam1);
+	pMessagePB->set_param2(pszParam2);
+	pMessagePB->set_param3(pszParam3);
+	pMessagePB->set_param4(pszParam4);
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pSayText2Message, pMessage, 0);
 
-	delete pMessage;
+#ifndef _WIN32
+	Destruct(pMessage);
+	free((void *)pMessage);
+#endif // !_WIN32
 }
 
-void TickratePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
+void Tickrate_Plugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination, size_t nParamCount, const char *pszParam, ...)
 {
 	auto *pTextMsg = m_pTextMsgMessage;
 
-	if(IsChannelEnabled(LV_DETAILED))
+	if(Logger::IsChannelEnabled(LV_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sBuffer;
+		CBufferStringN<1024> sBuffer;
 
 		sBuffer.Format("Send message (%s):\n", pTextMsg->GetUnscopedName());
 		aConcat.AppendToBuffer(sBuffer, "Destination", iDestination);
@@ -1931,36 +1936,48 @@ void TickratePlugin::SendTextMessage(IRecipientFilter *pFilter, int iDestination
 		Logger::Detailed(sBuffer);
 	}
 
-	auto *pMessage = pTextMsg->AllocateMessage()->ToPB<CUserMessageTextMsg>();
+	auto *pMessage = pTextMsg->AllocateMessage();
 
-	pMessage->set_dest(iDestination);
-	pMessage->add_param(pszParam);
+	auto *pMessagePB = pMessage->ToPB<CUserMessageTextMsg>();
+
+	pMessagePB->set_dest(iDestination);
+	pMessagePB->add_param(pszParam);
 	nParamCount--;
 
 	// Parse incoming parameters.
-	if(nParamCount > 0)
+	if(0 < nParamCount)
 	{
 		va_list aParams;
 
 		va_start(aParams, pszParam);
 
-		for(size_t n = 0; n < nParamCount; n++)
+		size_t n = 0;
+
+		do
 		{
-			pMessage->add_param(va_arg(aParams, const char *));
-		}
+			pMessagePB->add_param(va_arg(aParams, const char *));
+
+			n++;
+		}	
+		while(n < nParamCount);
 
 		va_end(aParams);
 	}
 
 	g_pGameEventSystem->PostEventAbstract(-1, false, pFilter, pTextMsg, pMessage, 0);
 
-	delete pMessage;
+#ifndef _WIN32
+	Destruct(pMessage);
+	free((void *)pMessage);
+#endif // !_WIN32
 }
 
-void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
+#include <tier0/memdbgoff.h>
+
+void Tickrate_Plugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession)
 {
-	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, FillServerInfo, pNetServer, this, &TickratePlugin::OnFillServerInfoHook, true);
-	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &TickratePlugin::OnConnectClientHook, true);
+	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, FillServerInfo, pNetServer, this, &Tickrate_Plugin::OnFillServerInfoHook, true);
+	SH_ADD_HOOK_MEMFUNC(CNetworkGameServerBase, ConnectClient, pNetServer, this, &Tickrate_Plugin::OnConnectClientHook, true);
 
 	// Initialize & hook game evetns.
 	// Initialize network messages.
@@ -1980,12 +1997,12 @@ void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const G
 
 	auto *pGlobals = pNetServer->GetGlobals();
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat, 
 		           &aConcat2 = s_aEmbed2Concat;
 
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 #ifndef _WIN32
 		try
@@ -2012,16 +2029,16 @@ void TickratePlugin::OnStartupServer(CNetworkGameServerBase *pNetServer, const G
 	}
 }
 
-void TickratePlugin::OnFillServerInfo(CNetworkGameServerBase *pNetServer, CSVCMsg_ServerInfo_t *pServerInfo)
+void Tickrate_Plugin::OnFillServerInfo(CNetworkGameServerBase *pNetServer, CSVCMsg_ServerInfo_t *pServerInfo)
 {
 	auto *pMessage = pServerInfo->ToPB<CSVCMsg_ServerInfo>();
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat, 
 		           &aConcat2 = s_aEmbed2Concat;
 
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 #ifndef _WIN32
 		try
@@ -2041,19 +2058,19 @@ void TickratePlugin::OnFillServerInfo(CNetworkGameServerBase *pNetServer, CSVCMs
 	pMessage->set_tick_interval(1.0f / (float)Get());
 }
 
-void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
+void Tickrate_Plugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence)
 {
 	if(pClient)
 	{
-		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &TickratePlugin::OnProcessRespondCvarValueHook, false);
-		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &TickratePlugin::OnDisconectClientHook, false);
+		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &Tickrate_Plugin::OnProcessRespondCvarValueHook, false);
+		SH_ADD_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &Tickrate_Plugin::OnDisconectClientHook, false);
 	}
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
 		const auto &aConcat = s_aEmbedConcat;
 
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		sMessage.Insert(0, "Connect a client:\n");
 
@@ -2062,9 +2079,9 @@ void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServer
 			DumpServerSideClient(aConcat, sMessage, pClient);
 		}
 
-		if(socket)
+		if(pNetInfo)
 		{
-			aConcat.AppendHandleToBuffer(sMessage, "Socket", (uint32)socket);
+			aConcat.AppendPointerToBuffer(sMessage, "Socket", pNetInfo);
 		}
 
 		if(pAuthTicket && nAuthTicketLength)
@@ -2127,7 +2144,7 @@ void TickratePlugin::OnConnectClient(CNetworkGameServerBase *pNetServer, CServer
 	}
 }
 
-bool TickratePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage)
+bool Tickrate_Plugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage)
 {
 	auto sFoundSymbol = FindConVarSymbol(aMessage.name().c_str());
 
@@ -2190,14 +2207,14 @@ bool TickratePlugin::OnProcessRespondCvarValue(CServerSideClientBase *pClient, c
 	return true;
 }
 
-void TickratePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
+void Tickrate_Plugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason)
 {
-	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &TickratePlugin::OnProcessRespondCvarValueHook, false);
-	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &TickratePlugin::OnDisconectClientHook, false);
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, ProcessRespondCvarValue, pClient, this, &Tickrate_Plugin::OnProcessRespondCvarValueHook, false);
+	SH_REMOVE_HOOK_MEMFUNC(CServerSideClientBase, PerformDisconnection, pClient, this, &Tickrate_Plugin::OnDisconectClientHook, false);
 
-	if(IsChannelEnabled(LS_DETAILED))
+	if(Logger::IsChannelEnabled(LS_DETAILED))
 	{
-		CBufferStringGrowable<1024> sMessage;
+		CBufferStringN<1024> sMessage;
 
 		const auto &aConcat = s_aEmbedConcat;
 
@@ -2209,22 +2226,22 @@ void TickratePlugin::OnDisconectClient(CServerSideClientBase *pClient, ENetworkD
 	}
 }
 
-CUtlSymbolLarge TickratePlugin::GetConVarSymbol(const char *pszName)
+CUtlSymbolLarge Tickrate_Plugin::GetConVarSymbol(const char *pszName)
 {
 	return m_tableConVars.AddString(pszName);
 }
 
-CUtlSymbolLarge TickratePlugin::FindConVarSymbol(const char *pszName) const
+CUtlSymbolLarge Tickrate_Plugin::FindConVarSymbol(const char *pszName) const
 {
 	return m_tableConVars.Find(pszName);
 }
 
-CUtlSymbolLarge TickratePlugin::GetLanguageSymbol(const char *pszName)
+CUtlSymbolLarge Tickrate_Plugin::GetLanguageSymbol(const char *pszName)
 {
 	return m_tableLanguages.AddString(pszName);
 }
 
-CUtlSymbolLarge TickratePlugin::FindLanguageSymbol(const char *pszName) const
+CUtlSymbolLarge Tickrate_Plugin::FindLanguageSymbol(const char *pszName) const
 {
 	return m_tableLanguages.Find(pszName);
 }

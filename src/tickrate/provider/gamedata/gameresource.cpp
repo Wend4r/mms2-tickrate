@@ -27,11 +27,7 @@ Tickrate::Provider::GameDataStorage::CGameResource::CGameResource()
 	{
 		auto &aCallbacks = m_aOffsetCallbacks;
 
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("CGameResourceService::m_pEntitySystem"), [&](const CUtlSymbolLarge &aKey, const ptrdiff_t &nOffset)
-		{
-			m_nEntitySystemOffset = nOffset;
-		});
-
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("CGameResourceService::m_pEntitySystem"), GAMEDATA_OFFSET_SHARED_LAMBDA_CAPTURE(m_nEntitySystemOffset));
 
 		m_aGameConfig.GetOffsets().AddListener(&aCallbacks);
 	}

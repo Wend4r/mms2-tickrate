@@ -69,7 +69,7 @@ set(SOURCE_FILES
 	${SOURCE_TICKRATE_PROVIDER_GAMEDATA_DIR}/hostframe.cpp
 	${SOURCE_TICKRATE_PROVIDER_GAMEDATA_DIR}/source2server.cpp
 	${SOURCE_TICKRATE_PROVIDER_GAMEDATA_DIR}/tick.cpp
-	${SOURCE_TICKRATE_DIR}/chat_command_system.cpp
+	${SOURCE_TICKRATE_DIR}/chatcommandsystem.cpp
 	${SOURCE_TICKRATE_DIR}/provider.cpp
 	${SOURCE_DIR}/concat.cpp
 	${SOURCE_DIR}/globals.cpp

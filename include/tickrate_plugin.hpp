@@ -25,9 +25,9 @@
 #	pragma once
 
 #	include <itickrate.hpp>
-#	include <tickrate/chat_command_system.hpp>
-#	include <tickrate/provider.hpp>
-#	include <concat.hpp>
+#	include "tickrate/chatcommandsystem.hpp"
+#	include "tickrate/provider.hpp"
+#	include "concat.hpp"
 
 #	include <logger.hpp>
 #	include <translations.hpp>
@@ -69,11 +69,11 @@
 class CBasePlayerController;
 class INetworkMessageInternal;
 
-class TickratePlugin final : public ISmmPlugin, public IMetamodListener, public ITickrate, public CBaseGameSystem, 
+class Tickrate_Plugin final : public ISmmPlugin, public IMetamodListener, public ITickrate, public CBaseGameSystem, 
                              public Tickrate::ChatCommandSystem, public Tickrate::Provider, virtual public Logger, public Translations
 {
 public:
-	TickratePlugin();
+	Tickrate_Plugin();
 
 public: // ISmmPlugin
 	bool Load(PluginId id, ISmmAPI *ismm, char *error = nullptr, size_t maxlen = 0, bool late = true) override;
@@ -107,7 +107,7 @@ public: // ITickrate
 
 	class CLanguage : public ITickrate::ILanguage
 	{
-		friend class TickratePlugin;
+		friend class Tickrate_Plugin;
 
 	public:
 		CLanguage(const CUtlSymbolLarge &sInitName = NULL, const char *pszInitCountryCode = "en");
@@ -127,7 +127,7 @@ public: // ITickrate
 
 	class CPlayerData : public IPlayerData
 	{
-		friend class TickratePlugin;
+		friend class Tickrate_Plugin;
 
 	public:
 		CPlayerData();
@@ -242,7 +242,7 @@ public: // Translations.
 	bool ClearTranslations(char *error = nullptr, size_t maxlen = 0);
 
 private: // Commands.
-	CON_COMMAND_MEMBER_F(TickratePlugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
+	CON_COMMAND_MEMBER_F(Tickrate_Plugin, "mm_" META_PLUGIN_PREFIX "_reload_gamedata", OnReloadGameDataCommand, "Reload gamedata configs", FCVAR_LINKED_CONCOMMAND);
 
 private: // ConVars. See the constructor
 	ConVar<int> m_aSVTickrateConVar;
@@ -253,7 +253,7 @@ public: // SourceHooks.
 	void OnStartupServerHook(const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession, const char *);
 	void OnDispatchConCommandHook(ConCommandHandle hCommand, const CCommandContext &aContext, const CCommand &aArgs);
 	void OnFillServerInfoHook(CSVCMsg_ServerInfo_t *pServerInfo);
-	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
+	CServerSideClientBase *OnConnectClientHook(const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
 	bool OnProcessRespondCvarValueHook(const CCLCMsg_RespondCvarValue_t &aMessage);
 	void OnDisconectClientHook(ENetworkDisconnectionReason eReason);
 
@@ -284,7 +284,7 @@ public: // Utils.
 protected: // Handlers.
 	void OnStartupServer(CNetworkGameServerBase *pNetServer, const GameSessionConfiguration_t &config, ISource2WorldSession *pWorldSession);
 	void OnFillServerInfo(CNetworkGameServerBase *pNetServer, CSVCMsg_ServerInfo_t *pServerInfo);
-	void OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, int socket, CCLCMsg_SplitPlayerConnect_t *pSplitPlayer, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
+	void OnConnectClient(CNetworkGameServerBase *pNetServer, CServerSideClientBase *pClient, const char *pszName, ns_address *pAddr, void *pNetInfo, C2S_CONNECT_Message *pConnectMsg, const char *pszChallenge, const byte *pAuthTicket, int nAuthTicketLength, bool bIsLowViolence);
 	bool OnProcessRespondCvarValue(CServerSideClientBase *pClient, const CCLCMsg_RespondCvarValue_t &aMessage);
 	void OnDisconectClient(CServerSideClientBase *pClient, ENetworkDisconnectionReason eReason);
 
@@ -322,9 +322,9 @@ private: // Fields.
 	CUtlVector<CLanguage> m_vecLanguages;
 
 	CPlayerData m_aPlayers[ABSOLUTE_PLAYER_LIMIT];
-}; // TickratePlugin
+}; // Tickrate_Plugin
 
-extern TickratePlugin *g_pTickratePlugin;
+extern Tickrate_Plugin *g_pTickratePlugin;
 
 PLUGIN_GLOBALVARS();
 

@@ -8,6 +8,15 @@ endif()
 
 set(SOURCESDK_BINARY_DIR "sourcesdk")
 
+set(SOURCESDK_PROTOS
+	network_connection
+	networkbasetypes
+	netmessages
+	connectionless_netmessages
+	networksystem_protomessages
+	usermessages
+)
+
 add_subdirectory(${SOURCESDK_DIR} ${SOURCESDK_BINARY_DIR})
 
 function(get_sourcesdk_target_property VAR_NAME TARGET PROPERTY)

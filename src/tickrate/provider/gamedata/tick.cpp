@@ -26,30 +26,11 @@ Tickrate::Provider::GameDataStorage::CTick::CTick()
 	{
 		auto &aCallbacks = m_aAddressCallbacks;
 
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("&tick_interval"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
-		{
-			m_pInterval = aAddress.RCast<decltype(m_pInterval)>();
-		});
-
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("&(double)tick_interval"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
-		{
-			m_pInterval2 = aAddress.RCast<decltype(m_pInterval2)>();
-		});
-
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("&tick_interval3_default"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
-		{
-			m_pInterval3Default = aAddress.RCast<decltype(m_pInterval3Default)>();
-		});
-
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("&tick_interval3"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
-		{
-			m_pInterval3 = aAddress.RCast<decltype(m_pInterval3)>();
-		});
-
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("&ticks_per_second"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
-		{
-			m_pPerSecond = aAddress.RCast<decltype(m_pPerSecond)>();
-		});
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&tick_interval"), GAMEDATA_ADDRESS_SHARED_LAMBDA_CAPTURE(m_pInterval));
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&(double)tick_interval"), GAMEDATA_ADDRESS_SHARED_LAMBDA_CAPTURE(m_pInterval2));
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&tick_interval3_default"), GAMEDATA_ADDRESS_SHARED_LAMBDA_CAPTURE(m_pInterval3Default));
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&tick_interval3"), GAMEDATA_ADDRESS_SHARED_LAMBDA_CAPTURE(m_pInterval3));
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&ticks_per_second"), GAMEDATA_ADDRESS_SHARED_LAMBDA_CAPTURE(m_pPerSecond));
 
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
 	}

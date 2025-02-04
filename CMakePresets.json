@@ -1,73 +1,130 @@
 {
 	"version": 4,
+
 	"configurePresets":
 	[
 		{
-			"name": "default",
-			"displayName": "Default Config",
-			"description": "Build using Ninja generator",
+			"name": "NinjaBase",
+
+			"binaryDir": "${sourceDir}/build/${hostSystemName}/${presetName}",
 			"generator": "Ninja",
-			"binaryDir": "${sourceDir}/build/${presetName}",
+			"description": "Build using Ninja generator",
+			"cacheVariables":
+			{
+				"CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Release"
+			},
+
 			"hidden": true
 		},
 		{
+			"name": "VisualStudio",
+			"displayName": "Visual Studio",
+
+			"condition":
+			{
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Windows"
+			},
+
+			"binaryDir": "${sourceDir}\\build\\${hostSystemName}\\${presetName}",
+			"generator": "Visual Studio 17 2022",
+			"description": "Build using Visual Studio generator",
+			"cacheVariables":
+			{
+				"CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+			}
+		},
+
+		{
 			"name": "Debug",
-			"displayName": "Debug - Ninja",
-			"inherits": "default",
+			"displayName": "Ninja - Debug",
+			"inherits": "NinjaBase",
+
 			"cacheVariables":
 			{
 				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "RelWithDebInfo",
+			"displayName": "Ninja - Release With Debug Info",
+			"description": "Build using Visual Studio generator",
+			"inherits": "NinjaBase",
+
+			"cacheVariables":
+			{
+				"CMAKE_BUILD_TYPE": "RelWithDebInfo"
 			}
 		},
 		{
 			"name": "Release",
-			"displayName": "Release - Ninja",
-			"inherits": "default",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "Release"
-			}
-		},
-		{
-			"name": "Windows/Debug",
-			"description": "Debug configuration for building with Visual Studio",
-			"displayName": "Debug - Visual Studio 2022",
-			"generator": "Visual Studio 17 2022",
-			"inherits": "default",
-			"cacheVariables":
-			{
-				"CMAKE_BUILD_TYPE": "Debug"
-			}
-		},
-		{
-			"name": "Windows/Release",
-			"description": "Release configuration for building with Visual Studio",
-			"displayName": "Release - Visual Studio 2022",
-			"generator": "Visual Studio 17 2022",
-			"inherits": "default",
+			"displayName": "Ninja - Release",
+			"inherits": "NinjaBase",
+
 			"cacheVariables":
 			{
 				"CMAKE_BUILD_TYPE": "Release"
 			}
 		}
 	],
+
 	"buildPresets":
 	[
 		{
+			"name": "VisualStudioBase",
+
+			"condition":
+			{
+				"type": "equals",
+				"lhs": "${hostSystemName}",
+				"rhs": "Windows"
+			},
+
+			"displayName": "Visual Studio - Base",
+			"description": "Visual Studio-based build preset",
+			"configurePreset": "VisualStudio",
+
+			"hidden": true
+		},
+
+		{
 			"name": "Debug",
+
+			"displayName": "Ninja - Debug",
+			"description": "Debug building with Ninja",
 			"configurePreset": "Debug"
 		},
 		{
+			"name": "RelWithDebInfo",
+
+			"displayName": "Ninja - Release With Debug Info",
+			"description": "Release With Debug Info building with Ninja configuraton",
+			"configurePreset": "RelWithDebInfo"
+		},
+		{
 			"name": "Release",
+
+			"displayName": "Ninja - Release",
+			"description": "Release building with Ninja configuraton",
 			"configurePreset": "Release"
 		},
+
 		{
-			"name": "Windows/Debug",
-			"configurePreset": "Windows/Debug"
+			"name": "VisualStudio\\Debug",
+			"inherits": "VisualStudioBase",
+
+			"displayName": "Visual Studio - Debug",
+			"description": "Debug building with Visual Studio configuraton",
+			"configuration": "Debug"
 		},
 		{
-			"name": "Windows/Release",
-			"configurePreset": "Windows/Release"
+			"name": "VisualStudio\\Release",
+			"inherits": "VisualStudioBase",
+
+			"displayName": "Visual Studio - Release",
+			"description": "Release building with Visual Studio configuraton",
+			"configuration": "Release"
 		}
 	]
 }

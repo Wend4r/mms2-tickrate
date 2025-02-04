@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _INCLUDE_METAMOD_SOURCE_TICKRATE_CHAT_COMMAND_HPP_
-#	define _INCLUDE_METAMOD_SOURCE_TICKRATE_CHAT_COMMAND_HPP_
+#ifndef _INCLUDE_METAMOD_SOURCE_TICKRATE_CHATCOMMANDSYSTEM_HPP_
+#	define _INCLUDE_METAMOD_SOURCE_TICKRATE_CHATCOMMANDSYSTEM_HPP_
 
 #	pragma once
 
@@ -70,4 +70,4 @@ namespace Tickrate
 	}; // ChatCommand
 }; // Tickrate
 
-#endif // _INCLUDE_METAMOD_SOURCE_TICKRATE_CHAT_COMMAND_HPP_
+#endif // _INCLUDE_METAMOD_SOURCE_TICKRATE_CHATCOMMANDSYSTEM_HPP_

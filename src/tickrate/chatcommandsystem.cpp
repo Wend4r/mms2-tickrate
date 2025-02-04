@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <tickrate/chat_command_system.hpp>
+#include <tickrate/chatcommandsystem.hpp>
 
 #include <tier1/utlrbtree.h>
 
@@ -63,7 +63,7 @@ char Tickrate::ChatCommandSystem::GetSilentTrigger()
 
 bool Tickrate::ChatCommandSystem::Handle(CPlayerSlot aSlot, bool bIsSilent, const CUtlVector<CUtlString> &vecArgs)
 {
-	if(aSlot == -1)
+	if(aSlot == INVALID_PLAYER_SLOT)
 	{
 		Message("Type the chat command from root console?\n");
 

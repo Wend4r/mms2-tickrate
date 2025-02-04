@@ -29,15 +29,15 @@ Tickrate::Provider::GameDataStorage::CHostFrame::CHostFrame()
 		auto &aCallbacks = m_aAddressCallbacks;
 
 #ifdef _WIN32
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("&s_pHostFrameSingleton->time_unbounded"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&s_pHostFrameSingleton->time_unbounded"), {[&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
 		{
 			m_p = (CFrame *)(aAddress.CCast<ptrdiff_t>() - offsetof(CFrame, time_unbounded));
-		});
+		}});
 #else
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("GetHostFrame"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("GetHostFrame"), {[&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
 		{
 			m_p = (*aAddress.UCast<CFrame *(*)()>())();
-		});
+		}});
 #endif
 
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);

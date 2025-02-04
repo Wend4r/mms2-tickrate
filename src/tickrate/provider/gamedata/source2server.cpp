@@ -26,10 +26,7 @@ Tickrate::Provider::GameDataStorage::CSource2Server::CSource2Server()
 	{
 		auto &aCallbacks = m_aAddressCallbacks;
 
-		aCallbacks.Insert(m_aGameConfig.GetSymbol("&s_GameEventManager"), [&](const CUtlSymbolLarge &, const DynLibUtils::CMemory &aAddress)
-		{
-			m_ppGameEventManager = aAddress.RCast<decltype(m_ppGameEventManager)>();
-		});
+		aCallbacks.Insert(m_aGameConfig.GetSymbol("&s_GameEventManager"), GAMEDATA_ADDRESS_SHARED_LAMBDA_CAPTURE(m_ppGameEventManager));
 
 		m_aGameConfig.GetAddresses().AddListener(&aCallbacks);
 	}
